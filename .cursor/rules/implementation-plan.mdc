@@ -40,11 +40,12 @@ alwaysApply: true
    - Status: Done
    - Changes: Added session link validation to shared package, implemented comprehensive tests for UUID and URL validation
 
-4. [ ] User Join Notifications
+4. [x] User Join Notifications
    - Add toast notification system
    - Implement user join notifications for other users only and not self
    - Add tests for notification system
-   - Status: Pending
+   - Status: Done
+   - Changes: Updated to show toast for other users only (not self)
 
 5. [ ] User Count and Avatar Updates
    - Update user count display in header

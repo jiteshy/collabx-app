@@ -360,14 +360,14 @@ export class SocketService {
   private handleUserJoined(payload: SocketPayloads[MessageType.USER_JOINED]): void {
     if (payload?.user) {
       this.storeHandlers.addUser(payload.user);
-      NotificationService.showUserJoined(payload.user.username);
+      NotificationService.showUserJoined(payload.user.username, this.username);
     }
   }
 
   private handleUserLeft(payload: SocketPayloads[MessageType.USER_LEFT]): void {
     if (payload?.user?.id) {
       this.storeHandlers.removeUser(payload.user.id);
-      NotificationService.showUserLeft(payload.user.username);
+      NotificationService.showUserLeft(payload.user.username, this.username);
     }
   }
 
@@ -406,7 +406,7 @@ export class SocketService {
     if (payload?.user) {
       console.log('Adding user to store:', payload.user);
       this.storeHandlers.addUser(payload.user);
-      NotificationService.showUserJoined(payload.user.username);
+      NotificationService.showUserJoined(payload.user.username, this.username);
       this.connectionState.isInitialConnection = false;
       console.log('Updated connection state:', this.connectionState);
     } else {
