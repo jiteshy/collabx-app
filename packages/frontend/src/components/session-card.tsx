@@ -1,7 +1,7 @@
 import { Copy, Users, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User } from '@/types';
+import { User } from '@collabx/shared';
 
 interface SessionCardProps {
   sessionId: string;
@@ -91,7 +91,7 @@ export function SessionCard({ sessionId, username, users, copySessionLink }: Ses
                       <span className="text-xs lg:text-sm font-medium text-slate-900 dark:text-zinc-200">
                         {user.username}
                         {user.username === username && (
-                          <span className="ml-1 text-orange-600">(You)</span>
+                          <span className="ml-1 text-amber-400">(You)</span>
                         )}
                       </span>
                       <span className="text-[10px] lg:text-xs text-slate-500 dark:text-zinc-400">

@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MonacoEditor } from '../monaco-editor';
-import { MessageType } from '@/types';
+import { MessageType } from '@collabx/shared';
 import { act } from 'react-dom/test-utils';
 
 // Mock next/dynamic

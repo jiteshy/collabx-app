@@ -5,8 +5,8 @@ import dynamic from 'next/dynamic';
 import type { editor as MonacoEditorType } from 'monaco-editor';
 import type { EditorProps } from '@monaco-editor/react';
 import { useEditorStore } from '@/lib/stores';
-import { DEFAULT_CONTENT, DEFAULT_LANGUAGE } from '@/lib/utils';
-import { MessageType } from '@/types';
+import { DEFAULT_CONTENT, DEFAULT_LANGUAGE } from '@collabx/shared';
+import { MessageType } from '@collabx/shared';
 import { useTheme } from 'next-themes';
 import { EditorShimmer } from './editor-shimmer';
 

@@ -3,119 +3,143 @@ description:
 globs: 
 alwaysApply: true
 ---
- 
-# Implementation Plan - CollabX Backend
+# Implementation Plan - CollabX Core Functionalities
 
-## Use src/server as baseline for all features development in this project
-## Refer client implementation - https://github.com/jiteshy/collabx and develop BE based on that
+## Rules to adhere to:
+   - Anytime we do a refactoring to use the common items from shared package, remove the redundant files from frontend or backend.
+   - Do not change the UI layout or components if not absolutely needed.
+   - Looks for existing implementation first and if not found then implement from scratch.
+   - Cleanup redundant code if any along the way.
+   - Make things easier wherever possible in the code
+   - For each feature above, add existing or create new test cases after implementing the functionality.
+   - Refer this plan and Do not break the previously implemented functionality.
+   - Be very careful with refactoring just so we do not break anything existing.
 
-## Phase 1: Project Setup and Basic Structure
-1. [x] Initial project setup
-   - Set up NestJS project
-   - Configure TypeScript
-   - Set up environment configuration
-   - Add Redis configuration
-   - Status: Completed
-   - Summary: Created NestJS project structure with necessary dependencies
-   - Summary: Added environment configuration and Redis setup
+## Phase 1: Session Management and User Experience
+1. [x] Auto Join with Random Username
+   - Add random username generation in frontend
+   - Modify `useWebSocket` hook to auto-join on mount
+   - Update `EditorGateway` to handle auto-join
+   - Add tests for auto-join functionality
+   - Status: Done
+   - Changes: Fixed type issues in useWebSocket hook and ensured proper auto-join functionality
 
-2. [x] Port core types and interfaces
-   - Create DTOs for messages
-   - Define session interfaces
-   - Create validation pipes
-   - Status: Completed
-   - Summary: Created core types and interfaces in src/types/index.ts
-   - Summary: Added DTOs with validation in src/dto/messages.dto.ts
-   - Summary: Implemented validation pipe in src/pipes/validation.pipe.ts
+2. [x] User List and Current User Display
+   - Update `EditorHeader` component to show "(You)" suffix
+   - Add "Current User" label below username
+   - Modify user list styling for better visibility
+   - Add tests for user list display
+   - Status: Done
+   - Changes: Enhanced user list display with current user label, improved styling, and added comprehensive tests
 
-3. [x] Session Management
-   - Implement SessionModule
-   - Create Redis service for session storage
-   - Add session cleanup mechanism
-   - Port existing session logic
-   - Status: Completed
-   - Summary: Created Redis service for session storage in src/services/redis.service.ts
-   - Summary: Implemented Session service with all core functionality in src/services/session.service.ts
-   - Summary: Created Session module to tie services together in src/modules/session.module.ts
-
-4. [x] WebSocket Gateway
-   - Create WebSocket gateway
-   - Implement connection handling
-   - Port existing socket events
-   - Add error handling
-   - Status: Completed
-   - Summary: Created WebSocket gateway in src/gateways/collab.gateway.ts
-   - Summary: Implemented RateLimiter service in src/rate-limit/rate-limiter.ts
-   - Summary: Added ValidationService in src/validation/validation.service.ts
-
-5. [x] Rate Limiting
-   - Create RateLimiter module
-   - Port existing rate limiting logic
-   - Add Redis-based rate limiting
-   - Status: Completed
-   - Summary: Created Redis-based rate limiter in src/rate-limit/redis-rate-limiter.ts
-   - Summary: Created RateLimit module in src/rate-limit/rate-limit.module.ts
-   - Summary: Updated CollabGateway to use Redis-based rate limiting
-
-6. [x] Validation Service
-   - Create ValidationModule
-   - Port existing validation logic
-   - Add request validation pipes
-   - Status: Completed
-   - Summary: Created ValidationModule in src/validation/validation.module.ts
-   - Summary: Enhanced ValidationService with comprehensive validation logic in src/validation/validation.service.ts
-   - Summary: Updated CollabGateway to use the enhanced ValidationService
-
-7. [x] Unit Tests
-   - Create test files for all services
-   - Add test coverage for core functionality
-   - Implement mock services
-   - Status: Completed
-   - Summary: Created test files for ValidationService in src/validation/validation.service.spec.ts
-   - Summary: Created test files for RateLimiterService in src/rate-limit/redis-rate-limiter.spec.ts
-   - Summary: Created test files for SessionService in src/services/session.service.spec.ts
-   - Summary: Created test files for CollabGateway in src/gateways/collab.gateway.spec.ts
-
-## Phase 2: Advanced Features
-1. [ ] Cursor Synchronization
-   - Implement cursor position tracking
-   - Add cursor movement events
-   - Handle cursor updates
+3. [ ] Session Link Join
+   - Add session link handling in frontend
+   - Update `EditorGateway` to handle session link joins
+   - Add validation for session links
+   - Add tests for session link functionality
    - Status: Pending
 
-2. [ ] Selection Synchronization
-   - Implement selection tracking
-   - Add selection change events
-   - Handle selection updates
+4. [ ] User Join Notifications
+   - Add toast notification system
+   - Implement user join notifications for other users only and not self
+   - Add tests for notification system
    - Status: Pending
 
-3. [ ] User Presence
-   - Add user online/offline status
-   - Implement user activity tracking
-   - Handle user disconnection
+5. [ ] User Count and Avatar Updates
+   - Update user count display in header
+   - Implement real-time avatar updates
+   - Add tests for user count and avatar updates
    - Status: Pending
 
-4. [ ] Error Handling and Recovery
-   - Implement error recovery mechanisms
-   - Add automatic reconnection
-   - Handle edge cases
+## Phase 2: Editor Functionality
+6. [ ] Default Content Loading
+   - Set up default content in `DEFAULT_CONTENT`
+   - Ensure content is loaded on editor mount
+   - Add tests for default content loading
    - Status: Pending
 
-## Phase 3: Performance and Security
-1. [ ] Performance Optimization
-   - Optimize Redis operations
-   - Implement caching strategies
-   - Add performance monitoring
+7. [ ] Collaborative Editing
+   - Verify existing content sync implementation
+   - Add conflict resolution if needed
+   - Add tests for collaborative editing
    - Status: Pending
 
-2. [ ] Security Enhancements
-   - Add input sanitization
-   - Implement rate limiting per user
-   - Add security headers
+8. [ ] Language Synchronization
+   - Verify existing language sync implementation
+   - Add tests for language synchronization
    - Status: Pending
 
-3. [ ] Monitoring and Logging
-   - Add application monitoring
-   - Implement logging system
-   - Add performance metrics
+## Phase 3: UI/UX Features
+9. [ ] Theme Management
+   - Set dark theme as default
+   - Add theme toggle functionality
+   - Persist theme preference
+   - Add tests for theme management
+   - Status: Pending
+
+10. [ ] Cursor Synchronization
+    - Implement cursor position tracking
+    - Add cursor movement events
+    - Handle cursor updates
+    - Add tests for cursor sync
+    - Status: Pending
+
+11. [ ] Typing Indicator
+    - Add typing state tracking
+    - Implement typing indicator display
+    - Handle multiple users typing
+    - Add tests for typing indicator
+    - Status: Pending
+
+## Phase 4: Session Management and Limits
+12. [ ] User Limit Implementation
+    - Add user limit configuration in env
+    - Implement user limit check in `SessionService`
+    - Add tests for user limit functionality
+    - Status: Pending
+
+13. [ ] Session Full Dialog
+    - Add session full dialog component
+    - Implement new session creation
+    - Add read-only mode handling
+    - Add tests for session full dialog
+    - Status: Pending
+
+14. [ ] Redis Session Management
+    - Update Redis session TTL to 4 hours
+    - Implement session cleanup after 15 minutes of inactivity
+    - Add session cleanup mechanism
+    - Add tests for Redis session management
+    - Status: Pending
+
+## Testing and Quality Assurance
+1. [ ] Unit Tests
+   - Add tests for all new functionality
+   - Ensure existing tests pass
+   - Add integration tests where needed
+   - Status: Pending
+
+2. [ ] Performance Testing
+   - Test with multiple concurrent users
+   - Verify Redis performance
+   - Test WebSocket connection stability
+   - Status: Pending
+
+3. [ ] Security Testing
+   - Verify rate limiting
+   - Test session validation
+   - Check input sanitization
+   - Status: Pending
+
+## Documentation
+1. [ ] API Documentation
+   - Document WebSocket events
+   - Document session management
+   - Add usage examples
+   - Status: Pending
+
+2. [ ] Code Documentation
+   - Add JSDoc comments
+   - Document complex logic
+   - Add inline comments where needed
    - Status: Pending 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { RedisRateLimiter } from './redis-rate-limiter';
-import { MessageType } from '../types';
+import { MessageType } from '@collabx/shared';
 
 @Injectable()
 export class RateLimiterService {

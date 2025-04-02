@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { RedisService } from './redis.service';
-import { Session, User } from '../types';
-import { DEFAULT_CONTENT, DEFAULT_LANGUAGE, getRandomColor } from '../lib/utils';
+import { Session, User } from '@collabx/shared';
+import { DEFAULT_CONTENT, DEFAULT_LANGUAGE, getRandomColor } from '@collabx/shared';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -21,6 +21,7 @@ export class SessionService {
         language: DEFAULT_LANGUAGE,
         lastActive: Date.now(),
         users: new Map(),
+        createdAt: Date.now(),
       };
       await this.redisService.setSession(sessionId, session);
       // Set initial TTL for new session

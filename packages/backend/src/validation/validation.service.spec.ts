@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ValidationService } from './validation.service';
-import { MessageType } from '../types';
+import { MessageType } from '@collabx/shared';
 
 describe('ValidationService', () => {
   let service: ValidationService;

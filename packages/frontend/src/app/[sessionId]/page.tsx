@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { MonacoEditor } from '@/components/monaco-editor';
 import { useEditorStore, useUserStore } from '@/lib/stores';
-import { getRandomUsername } from '@/lib/utils';
+import { getRandomUsername } from '@collabx/shared';
 import { toast } from 'sonner';
 import { SessionCard } from '@/components/session-card';
 import { Header } from '@/components/nav';

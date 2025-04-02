@@ -1,5 +1,5 @@
 import { SocketService } from '../socketService';
-import { MessageType, User } from '@/types';
+import { MessageType, User } from '@collabx/shared';
 import { expect } from '@jest/globals';
 
 // Mock socket.io-client
@@ -114,7 +114,7 @@ describe('SocketService', () => {
     socketService.sendMessage(MessageType.CONTENT_CHANGE, {
       content,
       user: {
-        id: 1,
+        id: '1',
         username: 'testuser',
         color: '#ff0000',
         lastActive: Date.now(),
@@ -124,7 +124,7 @@ describe('SocketService', () => {
     expect(mockSocket.emit).toHaveBeenCalledWith(MessageType.CONTENT_CHANGE, {
       content,
       user: {
-        id: 1,
+        id: '1',
         username: 'testuser',
         color: '#ff0000',
         lastActive: expect.any(Number),
@@ -150,7 +150,7 @@ describe('SocketService', () => {
     socketService.sendMessage(MessageType.LANGUAGE_CHANGE, {
       language,
       user: {
-        id: 1,
+        id: '1',
         username: 'testuser',
         color: '#ff0000',
         lastActive: Date.now(),
@@ -160,7 +160,7 @@ describe('SocketService', () => {
     expect(mockSocket.emit).toHaveBeenCalledWith(MessageType.LANGUAGE_CHANGE, {
       language,
       user: {
-        id: 1,
+        id: '1',
         username: 'testuser',
         color: '#ff0000',
         lastActive: expect.any(Number),
@@ -177,7 +177,7 @@ describe('SocketService', () => {
     )[1];
 
     const mockUser: User = {
-      id: 1,
+      id: '1',
       username: 'testuser',
       color: '#ff0000',
       lastActive: Date.now(),
@@ -203,7 +203,7 @@ describe('SocketService', () => {
     )[1];
 
     const user: User = {
-      id: 2,
+      id: '2',
       username: 'newuser',
       color: '#00ff00',
       lastActive: Date.now(),
@@ -221,7 +221,7 @@ describe('SocketService', () => {
     )[1];
 
     const user: User = {
-      id: 2,
+      id: '2',
       username: 'newuser',
       color: '#00ff00',
       lastActive: Date.now(),
@@ -250,7 +250,7 @@ describe('SocketService', () => {
     )[1];
 
     const user: User = {
-      id: 2,
+      id: '2',
       username: 'newuser',
       color: '#00ff00',
       lastActive: Date.now(),
@@ -276,7 +276,7 @@ describe('SocketService', () => {
     )[1];
 
     const user: User = {
-      id: 2,
+      id: '2',
       username: 'newuser',
       color: '#00ff00',
       lastActive: Date.now(),
@@ -475,7 +475,7 @@ describe('SocketService', () => {
       socketService.sendMessage(MessageType.CONTENT_CHANGE, {
         content: 'test',
         user: {
-          id: 1,
+          id: '1',
           username: 'testuser',
           color: '#ff0000',
           lastActive: Date.now(),
@@ -492,7 +492,7 @@ describe('SocketService', () => {
       socketService.sendMessage(MessageType.CONTENT_CHANGE, {
         content,
         user: {
-          id: 1,
+          id: '1',
           username: 'testuser',
           color: '#ff0000',
           lastActive: Date.now(),
@@ -502,7 +502,7 @@ describe('SocketService', () => {
       expect(mockSocket.emit).toHaveBeenCalledWith(MessageType.CONTENT_CHANGE, {
         content,
         user: {
-          id: 1,
+          id: '1',
           username: 'testuser',
           color: '#ff0000',
           lastActive: expect.any(Number),
@@ -517,7 +517,7 @@ describe('SocketService', () => {
       socketService.sendMessage(MessageType.CONTENT_CHANGE, {
         content: 'test',
         user: {
-          id: 1,
+          id: '1',
           username: 'testuser',
           color: '#ff0000',
           lastActive: Date.now(),
@@ -537,7 +537,7 @@ describe('SocketService', () => {
       )[1];
 
       const user: User = {
-        id: 2,
+        id: '2',
         username: 'newuser',
         color: '#00ff00',
         lastActive: Date.now(),
@@ -556,7 +556,7 @@ describe('SocketService', () => {
       )[1];
 
       const user: User = {
-        id: 2,
+        id: '2',
         username: 'newuser',
         color: '#00ff00',
         lastActive: Date.now(),
@@ -575,7 +575,7 @@ describe('SocketService', () => {
       )[1];
 
       const user: User = {
-        id: 2,
+        id: '2',
         username: 'newuser',
         color: '#00ff00',
         lastActive: Date.now(),
@@ -594,7 +594,7 @@ describe('SocketService', () => {
       socketService.sendMessage(MessageType.CONTENT_CHANGE, {
         content: 'test',
         user: {
-          id: 1,
+          id: '1',
           username: 'testuser',
           color: '#ff0000',
           lastActive: Date.now(),

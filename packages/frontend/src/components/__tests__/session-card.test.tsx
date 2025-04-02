@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SessionCard } from '../session-card';
-import { User } from '@/types';
+import { User } from '@collabx/shared';
 import { expect } from '@jest/globals';
 
 // Mock window.location
@@ -13,14 +13,14 @@ Object.defineProperty(window, 'location', {
 describe('SessionCard', () => {
   const mockUsers: User[] = [
     {
-      id: 1,
+      id: '1',
       username: 'testuser',
       color: '#ff0000',
       lastActive: Date.now(),
       sessionId: 'test-session',
     },
     {
-      id: 2,
+      id: '2',
       username: 'collaborator',
       color: '#00ff00',
       lastActive: Date.now(),

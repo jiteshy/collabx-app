@@ -1,19 +1,19 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { EditorHeader } from '../editor-header';
-import { User } from '@/types';
+import { User } from '@collabx/shared';
 import { expect } from '@jest/globals';
 
 describe('EditorHeader', () => {
   const mockUsers: User[] = [
     {
-      id: 1,
+      id: '1',
       username: 'testuser',
       color: '#ff0000',
       lastActive: Date.now(),
       sessionId: 'test-session',
     },
     {
-      id: 2,
+      id: '2',
       username: 'collaborator',
       color: '#00ff00',
       lastActive: Date.now(),
@@ -51,6 +51,47 @@ describe('EditorHeader', () => {
     expect(avatars.length).toBe(2);
   });
 
+  it('shows current user label on hover', () => {
+    render(<EditorHeader {...defaultProps} />);
+    
+    // Find the current user's avatar
+    const currentUserAvatar = document.querySelector('.group');
+    expect(currentUserAvatar).toBeDefined();
+
+    // Simulate hover
+    fireEvent.mouseEnter(currentUserAvatar!);
+
+    // Check for current user label
+    const currentUserLabel = screen.getByText('Current User');
+    expect(currentUserLabel).toBeDefined();
+    expect(currentUserLabel.className).toContain('text-yellow-400');
+  });
+
+  it('applies special border to current user avatar', () => {
+    render(<EditorHeader {...defaultProps} />);
+    
+    // Find the current user's avatar
+    const currentUserAvatar = document.querySelector('.group div[style*="background-color"]');
+    expect(currentUserAvatar).toBeDefined();
+    expect(currentUserAvatar?.className).toContain('border-yellow-400');
+  });
+
+  it('shows username in tooltip on hover', () => {
+    render(<EditorHeader {...defaultProps} />);
+    
+    // Find the current user's avatar
+    const currentUserAvatar = document.querySelector('.group');
+    expect(currentUserAvatar).toBeDefined();
+
+    // Simulate hover
+    fireEvent.mouseEnter(currentUserAvatar!);
+
+    // Check for username
+    const username = screen.getByText('testuser');
+    expect(username).toBeDefined();
+    expect(username.className).toContain('font-medium');
+  });
+
   describe('Edge Cases', () => {
     it('handles empty users array', () => {
       render(<EditorHeader {...defaultProps} users={[]} />);
@@ -60,6 +101,28 @@ describe('EditorHeader', () => {
 
       const userList = document.querySelectorAll('.group');
       expect(userList.length).toBe(0);
+    });
+
+    it('handles long usernames', () => {
+      const longUsername = 'a'.repeat(50);
+      const usersWithLongName = [
+        {
+          ...mockUsers[0],
+          username: longUsername,
+        },
+      ];
+
+      render(<EditorHeader {...defaultProps} users={usersWithLongName} />);
+
+      const avatar = document.querySelector('.group');
+      expect(avatar).toBeDefined();
+
+      // Simulate hover
+      fireEvent.mouseEnter(avatar!);
+
+      // Check for username
+      const username = screen.getByText(longUsername);
+      expect(username).toBeDefined();
     });
   });
 

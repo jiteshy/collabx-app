@@ -5,8 +5,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SUPPORTED_LANGUAGES } from '@/lib/utils';
-import { User } from '@/types';
+import { SUPPORTED_LANGUAGES } from '@collabx/shared';
+import { User } from '@collabx/shared';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EditorHeaderProps {
@@ -55,16 +55,20 @@ export function EditorHeader({
               className="relative group"
             >
               <div
-                className="w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-xs text-white shadow-sm transition-all duration-200 hover:scale-110 hover:z-10"
+                className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 flex items-center justify-center text-xs text-white shadow-sm transition-all duration-200 hover:scale-110 hover:z-10 ${
+                  user.username === username
+                    ? 'border-zinc-800 dark:border-zinc-100'
+                    : 'border-zinc-100 dark:border-zinc-800'
+                }`}
                 style={{ backgroundColor: user.color }}
               >
                 {user.username[0].toUpperCase()}
               </div>
               <div className="absolute left-1/2 -translate-x-10/12 z-10 top-full mb-2 hidden group-hover:block">
-                <div className="bg-slate-800 text-zinc-100 text-xs py-1 px-2 rounded whitespace-nowrap">
-                  {user.username}
+                <div className="bg-slate-800 text-zinc-100 text-xs py-1.5 px-2.5 rounded whitespace-nowrap shadow-lg">
+                  <div className="font-medium">{user.username}</div>
                   {user.username === username && (
-                    <span className="ml-1 text-yellow-400">(You)</span>
+                    <div className="text-amber-400 text-[10px] mt-0.5">(You)</div>
                   )}
                 </div>
                 <div className="absolute left-10/12 -translate-x-1/2 bottom-full w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[4px] border-b-slate-800"></div>

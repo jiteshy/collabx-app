@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RateLimiterService } from './rate-limiter.service';
 import { RedisRateLimiter } from './redis-rate-limiter';
 import { Socket } from 'socket.io';
-import { MessageType } from '../types';
+import { MessageType } from '@collabx/shared';
 
 describe('RateLimiterService', () => {
   let service: RateLimiterService;

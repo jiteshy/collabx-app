@@ -2,7 +2,8 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { SocketService } from '@/lib/services/socket';
 import { useEditorStore } from '@/lib/stores/editorStore';
 import { useUserStore } from '@/lib/stores/userStore';
-import { MessageType } from '@/types';
+import { MessageType, UserCursor as SharedUserCursor, UserSelection as SharedUserSelection } from '@collabx/shared';
+import { UserCursor, UserSelection } from '@/types';
 import { SocketPayloads } from '@/lib/services/socket/types';
 
 export const useWebSocket = (sessionId: string, username: string) => {
@@ -28,8 +29,24 @@ export const useWebSocket = (sessionId: string, username: string) => {
       resetEditor,
       addUser,
       removeUser,
-      updateCursor,
-      updateSelection,
+      updateCursor: (sharedCursor: SharedUserCursor) => {
+        const cursor: UserCursor = {
+          userId: sharedCursor.user.id,
+          position: sharedCursor.position,
+          color: sharedCursor.user.color,
+          username: sharedCursor.user.username,
+        };
+        updateCursor(cursor);
+      },
+      updateSelection: (sharedSelection: SharedUserSelection) => {
+        const selection: UserSelection = {
+          userId: sharedSelection.user.id,
+          selection: sharedSelection.selection,
+          color: sharedSelection.user.color,
+          username: sharedSelection.user.username,
+        };
+        updateSelection(selection);
+      },
       resetUser,
       onSessionFull: () => setIsSessionFull(true),
     }),
@@ -47,8 +64,8 @@ export const useWebSocket = (sessionId: string, username: string) => {
   );
 
   useEffect(() => {
-    if (!sessionId || !username) {
-      console.warn('Missing required parameters for socket connection');
+    if (!sessionId) {
+      console.warn('Missing sessionId for socket connection');
       return;
     }
 

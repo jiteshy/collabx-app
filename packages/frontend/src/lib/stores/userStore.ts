@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User, UserCursor, UserSelection } from '@/types';
+import { User, UserCursor, UserSelection } from '@collabx/shared';
 
 interface UserState {
   users: User[];
@@ -32,32 +32,32 @@ export const useUserStore = create<UserState>((set) => ({
   removeUser: (userId) => {
     set((state) => ({
       users: state.users.filter((u) => u.id !== userId),
-      cursors: state.cursors.filter((c) => c.userId !== userId),
-      selections: state.selections.filter((s) => s.userId !== userId),
+      cursors: state.cursors.filter((c) => c.user.id !== userId),
+      selections: state.selections.filter((s) => s.user.id !== userId),
     }));
   },
 
   updateCursor: (cursor) => {
     set((state) => ({
-      cursors: [...state.cursors.filter((c) => c.userId !== cursor.userId), cursor],
+      cursors: [...state.cursors.filter((c) => c.user.id !== cursor.user.id), cursor],
     }));
   },
 
   removeCursor: (userId) => {
     set((state) => ({
-      cursors: state.cursors.filter((c) => c.userId !== userId),
+      cursors: state.cursors.filter((c) => c.user.id !== userId),
     }));
   },
 
   updateSelection: (selection) => {
     set((state) => ({
-      selections: [...state.selections.filter((s) => s.userId !== selection.userId), selection],
+      selections: [...state.selections.filter((s) => s.user.id !== selection.user.id), selection],
     }));
   },
 
   removeSelection: (userId) => {
     set((state) => ({
-      selections: state.selections.filter((s) => s.userId !== userId),
+      selections: state.selections.filter((s) => s.user.id !== userId),
     }));
   },
 

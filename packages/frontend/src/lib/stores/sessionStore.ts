@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Session } from '@/types';
+import { Session } from '@collabx/shared';
 
 interface SessionState {
   currentSession: Session | null;

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SessionService } from './session.service';
 import { Redis } from 'ioredis';
 import { RedisService } from './redis.service';
-import { User, Session } from '../types';
+import { Session } from '@collabx/shared';
 
 jest.mock('ioredis', () => {
   const Redis = jest.fn(() => ({
@@ -62,6 +62,7 @@ describe('SessionService', () => {
         language: 'javascript',
         lastActive: Date.now(),
         users: new Map(),
+        createdAt: Date.now(),
       };
 
       mockRedisService.getSession.mockResolvedValue(existingSession);
@@ -96,6 +97,7 @@ describe('SessionService', () => {
         language: 'javascript',
         lastActive: Date.now(),
         users: new Map(),
+        createdAt: Date.now(),
       };
 
       mockRedisService.getSession.mockResolvedValue(existingSession);
@@ -116,6 +118,7 @@ describe('SessionService', () => {
         language: 'javascript',
         lastActive: Date.now(),
         users: new Map([['1', { id: '1', username, color: '#000000', lastActive: Date.now(), sessionId }]]),
+        createdAt: Date.now(),
       };
 
       mockRedisService.getSession.mockResolvedValue(existingSession);
@@ -134,6 +137,7 @@ describe('SessionService', () => {
         language: 'javascript',
         lastActive: Date.now(),
         users: new Map([[userId, { id: userId, username: 'test_user', color: '#000000', lastActive: Date.now(), sessionId }]]),
+        createdAt: Date.now(),
       };
 
       mockRedisService.getSession.mockResolvedValue(existingSession);
@@ -154,6 +158,7 @@ describe('SessionService', () => {
         language: 'javascript',
         lastActive: Date.now(),
         users: new Map(),
+        createdAt: Date.now(),
       };
 
       mockRedisService.getSession.mockResolvedValue(existingSession);
@@ -174,6 +179,7 @@ describe('SessionService', () => {
         language: 'javascript',
         lastActive: Date.now(),
         users: new Map(),
+        createdAt: Date.now(),
       };
 
       mockRedisService.getSession.mockResolvedValue(existingSession);

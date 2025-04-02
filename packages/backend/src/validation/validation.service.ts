@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MessageType } from '../types';
+import { MessageType } from '@collabx/shared';
 
 @Injectable()
 export class ValidationService {
