@@ -8,8 +8,7 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { MessageType, User } from '@collabx/shared';
-import { ValidationService } from '@collabx/shared';
+import { MessageType, User, ValidationService } from '@collabx/shared';
 import { RateLimiter } from '@collabx/shared';
 import { SessionService } from '@collabx/shared';
 import { ConfigService } from '@nestjs/config';

@@ -2,8 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { SocketService } from '@/lib/services/socket';
 import { useEditorStore } from '@/lib/stores/editorStore';
 import { useUserStore } from '@/lib/stores/userStore';
-import { MessageType, UserCursor as SharedUserCursor, UserSelection as SharedUserSelection } from '@collabx/shared';
-import { UserCursor, UserSelection } from '@/types';
+import { MessageType, UserCursor, UserSelection } from '@collabx/shared';
 import { SocketPayloads } from '@/lib/services/socket/types';
 
 export const useWebSocket = (sessionId: string, username: string) => {
@@ -29,21 +28,17 @@ export const useWebSocket = (sessionId: string, username: string) => {
       resetEditor,
       addUser,
       removeUser,
-      updateCursor: (sharedCursor: SharedUserCursor) => {
+      updateCursor: (sharedCursor: UserCursor) => {
         const cursor: UserCursor = {
-          userId: sharedCursor.user.id,
           position: sharedCursor.position,
-          color: sharedCursor.user.color,
-          username: sharedCursor.user.username,
+          user: sharedCursor.user,
         };
         updateCursor(cursor);
       },
-      updateSelection: (sharedSelection: SharedUserSelection) => {
+      updateSelection: (sharedSelection: UserSelection) => {
         const selection: UserSelection = {
-          userId: sharedSelection.user.id,
           selection: sharedSelection.selection,
-          color: sharedSelection.user.color,
-          username: sharedSelection.user.username,
+          user: sharedSelection.user,
         };
         updateSelection(selection);
       },

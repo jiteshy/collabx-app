@@ -8,7 +8,37 @@ export class ValidationService {
         message: 'Invalid session ID',
       };
     }
+
+    // Validate session ID format (alphanumeric only)
+    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    if (!alphanumericRegex.test(sessionId)) {
+      return {
+        type: 'INVALID_PAYLOAD',
+        message: 'Session ID must contain only letters and numbers',
+      };
+    }
+
     return null;
+  }
+
+  static validateSessionLink(sessionLink: string): SocketError | null {
+    if (!sessionLink || typeof sessionLink !== 'string') {
+      return {
+        type: 'INVALID_PAYLOAD',
+        message: 'Invalid session link',
+      };
+    }
+
+    try {
+      const url = new URL(sessionLink);
+      const sessionId = url.pathname.slice(1); // Remove leading slash
+      return this.validateSessionId(sessionId);
+    } catch {
+      return {
+        type: 'INVALID_PAYLOAD',
+        message: 'Invalid session link format',
+      };
+    }
   }
 
   static validateUsername(username: string): SocketError | null {
@@ -103,5 +133,14 @@ export class ValidationService {
       default:
         return null;
     }
+  }
+
+  static generateValidSessionId(length: number = 8): string {
+    const alphanumeric = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += alphanumeric.charAt(Math.floor(Math.random() * alphanumeric.length));
+    }
+    return result;
   }
 } 

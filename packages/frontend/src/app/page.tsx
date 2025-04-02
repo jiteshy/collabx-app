@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
+import { ValidationService } from '@collabx/shared';
 
 export default function Home() {
-  const sessionId = Math.random().toString(36).substring(2, 12);
+  const sessionId = ValidationService.generateValidSessionId(12);
   redirect(`/${sessionId}`);
 }

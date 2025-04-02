@@ -1,12 +1,13 @@
 {
   "name": "collabx",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "private": true,
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "dev": "pnpm --filter @collabx/shared build && concurrently \"pnpm --filter @collabx/frontend dev\" \"pnpm --filter @collabx/backend start:dev\"",
+    "predev": "pnpm --filter @collabx/shared build",
+    "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
@@ -16,12 +17,12 @@
     "prepare": "husky install"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.3.1",
-    "typescript": "^5.1.3",
-    "prettier": "^3.2.5",
     "eslint": "^9.0.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
-    "concurrently": "^8.2.2"
+    "prettier": "^3.0.0",
+    "typescript": "^5.1.3"
   }
 }

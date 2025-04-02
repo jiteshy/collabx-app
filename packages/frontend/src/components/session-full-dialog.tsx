@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/lib/stores/userStore';
 import { useEditorStore } from '@/lib/stores/editorStore';
+import { ValidationService } from '@collabx/shared';
 
 interface SessionFullDialogProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ export function SessionFullDialog({ isOpen, onViewReadOnly }: SessionFullDialogP
     resetEditor();
 
     // Generate a random session ID
-    const newSessionId = Math.random().toString(36).substring(2, 8);
+    const newSessionId = ValidationService.generateValidSessionId(8);
     router.push(`/${newSessionId}`);
   };
 
