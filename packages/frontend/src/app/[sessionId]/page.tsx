@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { MonacoEditor } from '@/components/monaco-editor';
 import { useEditorStore, useUserStore } from '@/lib/stores';
-import { getRandomUsername } from '@collabx/shared';
+import { getRandomUsername, MessageType } from '@collabx/shared';
 import { toast } from 'sonner';
 import { SessionCard } from '@/components/session-card';
 import { Header } from '@/components/nav';
@@ -102,7 +102,10 @@ export default function SessionPage() {
             <div className="bg-zinc-100 w-full md:w-4/5 m-auto lg:w-full border rounded-2xl shadow-2xl overflow-hidden h-full flex flex-col dark:bg-zinc-800">
               <EditorHeader
                 language={language}
-                setLanguage={setLanguage}
+                setLanguage={(newLanguage) => {
+                  setLanguage(newLanguage);
+                  sendMessage(MessageType.LANGUAGE_CHANGE, { language: newLanguage });
+                }}
                 users={users}
                 username={username}
                 readOnly={readOnly}

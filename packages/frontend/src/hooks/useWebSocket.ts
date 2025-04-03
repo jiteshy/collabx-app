@@ -85,7 +85,7 @@ export const useWebSocket = (sessionId: string, username: string) => {
     };
   }, [sessionId, username, handleError, storeHandlers]);
 
-  const sendMessage = useCallback((type: MessageType, payload: { content: string }) => {
+  const sendMessage = useCallback((type: MessageType, payload: any) => {
     if (socketServiceRef.current) {
       socketServiceRef.current.sendMessage(type, payload as SocketPayloads[MessageType]);
     }
