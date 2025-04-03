@@ -47,40 +47,47 @@ alwaysApply: true
    - Status: Done
    - Changes: Updated to show toast for other users only (not self)
 
+5. [x] User Count and Avatar Updates
+   - Update user count display in header
+   - Implement real-time avatar updates
+   - Add tests for user count and avatar updates
+   - Status: Done
+   - Changes: Added user count in editor header
+
 ## Phase 2: Editor Functionality
-5. [ ] Default Content Loading
+6. [ ] Default Content Loading
    - Set up default content in `DEFAULT_CONTENT`
    - Ensure content is loaded on editor mount
    - Add tests for default content loading
    - Status: Pending
 
-6. [ ] Collaborative Editing
+7. [ ] Collaborative Editing
    - Verify existing content sync implementation
    - Add conflict resolution if needed
    - Add tests for collaborative editing
    - Status: Pending
 
-7. [ ] Language Synchronization
+8. [ ] Language Synchronization
    - Verify existing language sync implementation
    - Add tests for language synchronization
    - Status: Pending
 
 ## Phase 3: UI/UX Features
-8. [ ] Theme Management
+9. [ ] Theme Management
    - Set dark theme as default
    - Add theme toggle functionality
    - Persist theme preference
    - Add tests for theme management
    - Status: Pending
 
-9. [ ] Cursor Synchronization
+10. [ ] Cursor Synchronization
     - Implement cursor position tracking
     - Add cursor movement events
     - Handle cursor updates
     - Add tests for cursor sync
     - Status: Pending
 
-10. [ ] Typing Indicator
+11. [ ] Typing Indicator
     - Add typing state tracking
     - Implement typing indicator display
     - Handle multiple users typing
@@ -88,20 +95,20 @@ alwaysApply: true
     - Status: Pending
 
 ## Phase 4: Session Management and Limits
-11. [ ] User Limit Implementation
+12. [ ] User Limit Implementation
     - Add user limit configuration in env
     - Implement user limit check in `SessionService`
     - Add tests for user limit functionality
     - Status: Pending
 
-12. [ ] Session Full Dialog
+13. [ ] Session Full Dialog
     - Add session full dialog component
     - Implement new session creation
     - Add read-only mode handling
     - Add tests for session full dialog
     - Status: Pending
 
-13. [ ] Redis Session Management
+14. [ ] Redis Session Management
     - Update Redis session TTL to 4 hours
     - Implement session cleanup after 15 minutes of inactivity
     - Add session cleanup mechanism

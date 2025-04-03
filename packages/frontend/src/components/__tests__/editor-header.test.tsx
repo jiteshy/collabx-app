@@ -51,6 +51,28 @@ describe('EditorHeader', () => {
     expect(avatars.length).toBe(2);
   });
 
+  it('displays the correct user count', () => {
+    render(<EditorHeader {...defaultProps} />);
+    const userCount = screen.getByText('2 active');
+    expect(userCount).toBeDefined();
+  });
+
+  it('updates user count when users change', () => {
+    const { rerender } = render(<EditorHeader {...defaultProps} />);
+    expect(screen.getByText('2 active')).toBeDefined();
+
+    const updatedUsers = [...mockUsers, {
+      id: '3',
+      username: 'newuser',
+      color: '#0000ff',
+      lastActive: Date.now(),
+      sessionId: 'test-session',
+    }];
+
+    rerender(<EditorHeader {...defaultProps} users={updatedUsers} />);
+    expect(screen.getByText('3 active')).toBeDefined();
+  });
+
   it('shows current user label on hover', () => {
     render(<EditorHeader {...defaultProps} />);
     
@@ -62,9 +84,8 @@ describe('EditorHeader', () => {
     fireEvent.mouseEnter(currentUserAvatar!);
 
     // Check for current user label
-    const currentUserLabel = screen.getByText('Current User');
+    const currentUserLabel = screen.getByText('(You)');
     expect(currentUserLabel).toBeDefined();
-    expect(currentUserLabel.className).toContain('text-yellow-400');
   });
 
   it('applies special border to current user avatar', () => {
@@ -73,7 +94,7 @@ describe('EditorHeader', () => {
     // Find the current user's avatar
     const currentUserAvatar = document.querySelector('.group div[style*="background-color"]');
     expect(currentUserAvatar).toBeDefined();
-    expect(currentUserAvatar?.className).toContain('border-yellow-400');
+    expect(currentUserAvatar?.className).toContain('border-zinc-800');
   });
 
   it('shows username in tooltip on hover', () => {
@@ -101,6 +122,8 @@ describe('EditorHeader', () => {
 
       const userList = document.querySelectorAll('.group');
       expect(userList.length).toBe(0);
+
+      expect(screen.getByText('0 active')).toBeDefined();
     });
 
     it('handles long usernames', () => {

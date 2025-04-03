@@ -8,6 +8,7 @@ import {
 import { SUPPORTED_LANGUAGES } from '@collabx/shared';
 import { User } from '@collabx/shared';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Users } from 'lucide-react';
 
 interface EditorHeaderProps {
   language: string;
@@ -26,22 +27,28 @@ export function EditorHeader({
 }: EditorHeaderProps) {
   return (
     <div className="pr-4 lg:pr-6 pl-12 h-12 flex items-center justify-between">
-      {readOnly ? (
-        <div className="text-zinc-600 dark:text-zinc-400 text-xs">In Read-Only Mode</div>
-      ) : (
-        <Select value={language} onValueChange={setLanguage}>
-          <SelectTrigger className="w-[140px] lg:w-[180px] !h-8 border-zinc-400 dark:border-zinc-600 dark:text-zinc-300">
-            <SelectValue placeholder="Select language" />
-          </SelectTrigger>
-          <SelectContent>
-            {SUPPORTED_LANGUAGES.map((lang: { value: string; label: string }) => (
-              <SelectItem key={lang.value} value={lang.value}>
-                {lang.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+      <div className="flex items-center space-x-4">
+        {readOnly ? (
+          <div className="text-zinc-600 dark:text-zinc-400 text-xs">In Read-Only Mode</div>
+        ) : (
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="w-[140px] lg:w-[180px] !h-8 border-zinc-400 dark:border-zinc-600 dark:text-zinc-300">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              {SUPPORTED_LANGUAGES.map((lang: { value: string; label: string }) => (
+                <SelectItem key={lang.value} value={lang.value}>
+                  {lang.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <div className="flex items-center space-x-2 text-zinc-600 dark:text-zinc-400">
+          <Users className="h-4 w-4" />
+          <span className="text-xs">{users.length} active</span>
+        </div>
+      </div>
 
       <div className="flex -space-x-2">
         <AnimatePresence>
