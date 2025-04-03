@@ -1,6 +1,7 @@
 import { SocketService } from '../socketService';
 import { MessageType, User } from '@collabx/shared';
 import { expect } from '@jest/globals';
+import { NotificationService } from '../../notification/notificationService';
 
 // Mock socket.io-client
 jest.mock('socket.io-client', () => ({
@@ -40,6 +41,7 @@ describe('SocketService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOnError = jest.fn();
+    Object.values(mockStoreHandlers).forEach((handler) => handler.mockClear());
     socketService = new SocketService('test-session', 'testuser', mockOnError, mockStoreHandlers);
   });
 
@@ -256,16 +258,12 @@ describe('SocketService', () => {
       lastActive: Date.now(),
       sessionId: 'test-session',
     };
-    mockHandler({
+    const payload = {
       position: { top: 100, left: 200 },
       user,
-    });
-    expect(mockStoreHandlers.updateCursor).toHaveBeenCalledWith({
-      userId: user.id,
-      username: user.username,
-      color: user.color,
-      position: { top: 100, left: 200 },
-    });
+    };
+    mockHandler(payload);
+    expect(mockStoreHandlers.updateCursor).toHaveBeenCalledWith(payload);
   });
 
   it('handles selection change event', () => {
@@ -282,16 +280,15 @@ describe('SocketService', () => {
       lastActive: Date.now(),
       sessionId: 'test-session',
     };
-    mockHandler({
-      selection: { start: 0, end: 10 },
+    const payload = {
+      selection: {
+        start: 0,
+        end: 10,
+      },
       user,
-    });
-    expect(mockStoreHandlers.updateSelection).toHaveBeenCalledWith({
-      userId: user.id,
-      username: user.username,
-      color: user.color,
-      selection: { start: 0, end: 10 },
-    });
+    };
+    mockHandler(payload);
+    expect(mockStoreHandlers.updateSelection).toHaveBeenCalledWith(payload);
   });
 
   describe('Connection Management', () => {
@@ -629,48 +626,192 @@ describe('SocketService', () => {
   });
 
   describe('User Management', () => {
-    it('handles user join with invalid data', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockOnError = jest.fn();
+      Object.values(mockStoreHandlers).forEach((handler) => handler.mockClear());
+      socketService = new SocketService('test-session', 'testuser', mockOnError, mockStoreHandlers);
       setupConnection();
+    });
+
+    it('handles user join with invalid data', () => {
       const mockHandler = mockSocket.on.mock.calls.find(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (call: any[]) => call[0] === MessageType.USER_JOINED,
       )[1];
 
+      // Test with null payload
+      mockHandler(null);
+      expect(mockStoreHandlers.addUser).not.toHaveBeenCalled();
+
+      // Test with undefined user
+      mockHandler({});
+      expect(mockStoreHandlers.addUser).not.toHaveBeenCalled();
+
+      // Test with null user
       mockHandler({ user: null });
       expect(mockStoreHandlers.addUser).not.toHaveBeenCalled();
     });
 
     it('handles user leave with invalid data', () => {
-      setupConnection();
       const mockHandler = mockSocket.on.mock.calls.find(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (call: any[]) => call[0] === MessageType.USER_LEFT,
       )[1];
 
+      // Test with null payload
+      mockHandler(null);
+      expect(mockStoreHandlers.removeUser).not.toHaveBeenCalled();
+
+      // Test with undefined user
+      mockHandler({});
+      expect(mockStoreHandlers.removeUser).not.toHaveBeenCalled();
+
+      // Test with null user
       mockHandler({ user: null });
+      expect(mockStoreHandlers.removeUser).not.toHaveBeenCalled();
+
+      // Test with user without id
+      mockHandler({ user: { username: 'test' } });
       expect(mockStoreHandlers.removeUser).not.toHaveBeenCalled();
     });
 
     it('handles cursor move with invalid data', () => {
-      setupConnection();
       const mockHandler = mockSocket.on.mock.calls.find(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (call: any[]) => call[0] === MessageType.CURSOR_MOVE,
       )[1];
 
+      // Test with null payload
+      mockHandler(null);
+      expect(mockStoreHandlers.updateCursor).not.toHaveBeenCalled();
+
+      // Test with undefined user and position
+      mockHandler({});
+      expect(mockStoreHandlers.updateCursor).not.toHaveBeenCalled();
+
+      // Test with null user and position
       mockHandler({ position: null, user: null });
+      expect(mockStoreHandlers.updateCursor).not.toHaveBeenCalled();
+
+      // Test with valid user but null position
+      mockHandler({
+        user: { id: '1', username: 'test' },
+        position: null,
+      });
+      expect(mockStoreHandlers.updateCursor).not.toHaveBeenCalled();
+
+      // Test with valid position but null user
+      mockHandler({
+        user: null,
+        position: { line: 1, column: 1 },
+      });
       expect(mockStoreHandlers.updateCursor).not.toHaveBeenCalled();
     });
 
     it('handles selection change with invalid data', () => {
-      setupConnection();
       const mockHandler = mockSocket.on.mock.calls.find(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (call: any[]) => call[0] === MessageType.SELECTION_CHANGE,
       )[1];
 
+      // Test with null payload
+      mockHandler(null);
+      expect(mockStoreHandlers.updateSelection).not.toHaveBeenCalled();
+
+      // Test with undefined user and selection
+      mockHandler({});
+      expect(mockStoreHandlers.updateSelection).not.toHaveBeenCalled();
+
+      // Test with null user and selection
       mockHandler({ selection: null, user: null });
       expect(mockStoreHandlers.updateSelection).not.toHaveBeenCalled();
+
+      // Test with valid user but null selection
+      mockHandler({
+        user: { id: '1', username: 'test' },
+        selection: null,
+      });
+      expect(mockStoreHandlers.updateSelection).not.toHaveBeenCalled();
+
+      // Test with valid selection but null user
+      mockHandler({
+        user: null,
+        selection: { start: { line: 1, column: 1 }, end: { line: 1, column: 5 } },
+      });
+      expect(mockStoreHandlers.updateSelection).not.toHaveBeenCalled();
+    });
+
+    it('should not duplicate users when reconnecting to the same session', () => {
+      // Simulate initial connection and user join
+      const initialUser = {
+        id: 'user1',
+        username: 'testuser',
+        color: '#ff0000',
+        lastActive: Date.now(),
+        sessionId: 'test-session',
+      };
+
+      // Simulate initial sync response
+      const mockHandler = mockSocket.on.mock.calls.find(
+        (call: any[]) => call[0] === MessageType.SYNC_RESPONSE,
+      )[1];
+
+      // First sync response
+      mockHandler({
+        content: '',
+        language: 'javascript',
+        users: [initialUser],
+      });
+
+      // Verify user was added once
+      expect(mockStoreHandlers.addUser).toHaveBeenCalledTimes(1);
+      expect(mockStoreHandlers.addUser).toHaveBeenCalledWith(initialUser);
+
+      // Clear mocks for next sync
+      mockStoreHandlers.addUser.mockClear();
+
+      // Simulate reconnection and new sync response
+      mockHandler({
+        content: '',
+        language: 'javascript',
+        users: [initialUser],
+      });
+
+      // Verify user was not added again
+      expect(mockStoreHandlers.addUser).not.toHaveBeenCalled();
+    });
+
+    it('should show notification when another user leaves the session', () => {
+      const mockHandler = mockSocket.on.mock.calls.find(
+        (call: any[]) => call[0] === MessageType.USER_LEFT,
+      )[1];
+
+      const leavingUser = {
+        id: 'user2',
+        username: 'otheruser',
+        color: '#00ff00',
+        lastActive: Date.now(),
+        sessionId: 'test-session',
+      };
+
+      // Mock NotificationService
+      const originalShowUserLeft = NotificationService.showUserLeft;
+      const mockShowUserLeft = jest.fn();
+      NotificationService.showUserLeft = mockShowUserLeft;
+
+      try {
+        mockHandler({ user: leavingUser });
+        
+        // Verify user was removed from store
+        expect(mockStoreHandlers.removeUser).toHaveBeenCalledWith(leavingUser.id);
+        
+        // Verify notification was shown
+        expect(mockShowUserLeft).toHaveBeenCalledWith(leavingUser.username, 'testuser');
+      } finally {
+        // Restore original implementation
+        NotificationService.showUserLeft = originalShowUserLeft;
+      }
     });
   });
 });

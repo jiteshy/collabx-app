@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { Session, User } from '@collabx/shared';
-import { DEFAULT_CONTENT, DEFAULT_LANGUAGE, getRandomColor } from '@collabx/shared';
+import {
+  DEFAULT_CONTENT,
+  DEFAULT_LANGUAGE,
+  getRandomColor,
+} from '@collabx/shared';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -34,7 +38,11 @@ export class SessionService {
     const session = await this.getOrCreateSession(sessionId);
 
     // Check for duplicate username
-    if (Array.from(session.users.values()).some((user) => user.username === username)) {
+    if (
+      Array.from(session.users.values()).some(
+        (user) => user.username === username,
+      )
+    ) {
       throw new Error('Username already taken');
     }
 
@@ -61,22 +69,31 @@ export class SessionService {
     return user;
   }
 
-  async removeUserFromSession(sessionId: string, userId: string): Promise<void> {
+  async removeUserFromSession(
+    sessionId: string,
+    userId: string,
+  ): Promise<void> {
     const session = await this.redisService.getSession(sessionId);
     if (session) {
       session.users.delete(userId);
       session.lastActive = Date.now();
-      
+
       if (session.users.size === 0) {
         // If no users left, set shorter TTL for empty session
-        await this.redisService.setSessionTTL(sessionId, this.EMPTY_SESSION_TTL);
+        await this.redisService.setSessionTTL(
+          sessionId,
+          this.EMPTY_SESSION_TTL,
+        );
       }
-      
+
       await this.redisService.setSession(sessionId, session);
     }
   }
 
-  async updateSessionContent(sessionId: string, content: string): Promise<void> {
+  async updateSessionContent(
+    sessionId: string,
+    content: string,
+  ): Promise<void> {
     const session = await this.redisService.getSession(sessionId);
     if (session) {
       session.content = content;
@@ -85,7 +102,10 @@ export class SessionService {
     }
   }
 
-  async updateSessionLanguage(sessionId: string, language: string): Promise<void> {
+  async updateSessionLanguage(
+    sessionId: string,
+    language: string,
+  ): Promise<void> {
     const session = await this.redisService.getSession(sessionId);
     if (session) {
       session.language = language;
@@ -100,4 +120,4 @@ export class SessionService {
     // Empty sessions will be removed after 1 hour
     // Active sessions will be removed after 24 hours of inactivity
   }
-} 
+}

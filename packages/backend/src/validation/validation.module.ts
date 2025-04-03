@@ -5,4 +5,4 @@ import { ValidationService } from '@collabx/shared';
   providers: [ValidationService],
   exports: [ValidationService],
 })
-export class ValidationModule {} 
+export class ValidationModule {}

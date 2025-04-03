@@ -30,7 +30,10 @@ export class RedisService {
       ...session,
       users: Object.fromEntries(session.users),
     };
-    await this.redis.set(this.getSessionKey(sessionId), JSON.stringify(sessionData));
+    await this.redis.set(
+      this.getSessionKey(sessionId),
+      JSON.stringify(sessionData),
+    );
   }
 
   async setSessionTTL(sessionId: string, seconds: number): Promise<void> {
@@ -73,4 +76,4 @@ export class RedisService {
   async ttl(key: string): Promise<number> {
     return this.redis.ttl(key);
   }
-} 
+}

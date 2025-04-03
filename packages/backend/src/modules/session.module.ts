@@ -6,4 +6,4 @@ import { SessionService } from '../services/session.service';
   providers: [RedisService, SessionService],
   exports: [SessionService],
 })
-export class SessionModule {} 
+export class SessionModule {}

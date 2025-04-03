@@ -43,9 +43,9 @@ describe('Language Synchronization', () => {
   });
 
   const findEventHandler = (eventName: string): SocketEventHandler | undefined => {
-    const eventTuple = mockSocket.on.mock.calls.find(
-      (call) => call[0] === eventName,
-    ) as SocketEventTuple | undefined;
+    const eventTuple = mockSocket.on.mock.calls.find((call) => call[0] === eventName) as
+      | SocketEventTuple
+      | undefined;
     return eventTuple?.[1];
   };
 
@@ -137,7 +137,9 @@ describe('Language Synchronization', () => {
       });
 
       expect(mockStoreHandlers.setLanguage).toHaveBeenCalledTimes(languages.length);
-      expect(mockStoreHandlers.setLanguage).toHaveBeenLastCalledWith(languages[languages.length - 1]);
+      expect(mockStoreHandlers.setLanguage).toHaveBeenLastCalledWith(
+        languages[languages.length - 1],
+      );
     });
 
     it('recovers language state after reconnection', () => {
@@ -204,41 +206,58 @@ describe('Language Synchronization', () => {
         resetUser: jest.fn(),
         onSessionFull: jest.fn(),
       };
-      const socketService2 = new SocketService('test-session', 'user2', onError, mockStoreHandlers2);
-      
-      // Connect both services
-      socketService1.connect();
-      socketService2.connect();
-      
-      // Simulate successful connection for both
-      const connectHandler1 = findEventHandler('connect');
-      if (connectHandler1) {
-        connectHandler1();
-        mockSocket.connected = true;
-      }
-      
-      // Get the socket for the second service
+      const socketService2 = new SocketService(
+        'test-session',
+        'user2',
+        onError,
+        mockStoreHandlers2,
+      );
+
+      // Create mock sockets for both services
+      const mockSocket1 = {
+        on: jest.fn(),
+        emit: jest.fn(),
+        connected: false,
+        disconnect: jest.fn(),
+      } as unknown as jest.Mocked<typeof Socket>;
+
       const mockSocket2 = {
         on: jest.fn(),
         emit: jest.fn(),
         connected: false,
         disconnect: jest.fn(),
       } as unknown as jest.Mocked<typeof Socket>;
-      
-      (Manager as jest.Mock).mockReturnValue({
-        socket: jest.fn().mockReturnValue(mockSocket2),
-      });
-      
-      // Connect the second socket
-      const connectHandler2 = mockSocket2.on.mock.calls.find(
-        (call) => call[0] === 'connect',
-      )?.[1];
-      
+
+      // Mock Manager for both services
+      (Manager as jest.Mock).mockImplementation((url, options) => ({
+        socket: jest.fn().mockImplementation((namespace) => {
+          if (options.query.username === 'user1') {
+            return mockSocket1;
+          } else {
+            return mockSocket2;
+          }
+        }),
+      }));
+
+      // Connect both services
+      socketService1.connect();
+      socketService2.connect();
+
+      // Simulate successful connection for both
+      const connectHandler1 = mockSocket1.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
+
+      const connectHandler2 = mockSocket2.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
+
+      if (connectHandler1) {
+        connectHandler1();
+        mockSocket1.connected = true;
+      }
+
       if (connectHandler2) {
         connectHandler2();
         mockSocket2.connected = true;
       }
-      
+
       // User1 changes the language
       const newLanguage = 'python';
       socketService1.sendMessage(MessageType.LANGUAGE_CHANGE, {
@@ -251,12 +270,12 @@ describe('Language Synchronization', () => {
           sessionId: 'test-session',
         },
       });
-      
+
       // Find the language change handler for user2
       const languageChangeHandler2 = mockSocket2.on.mock.calls.find(
         (call) => call[0] === MessageType.LANGUAGE_CHANGE,
       )?.[1];
-      
+
       if (languageChangeHandler2) {
         // Simulate the language change event being received by user2
         languageChangeHandler2({
@@ -269,7 +288,7 @@ describe('Language Synchronization', () => {
             sessionId: 'test-session',
           },
         });
-        
+
         // Verify that user2's language was updated
         expect(mockStoreHandlers2.setLanguage).toHaveBeenCalledWith(newLanguage);
       } else {
@@ -277,4 +296,4 @@ describe('Language Synchronization', () => {
       }
     });
   });
-}); 
+});

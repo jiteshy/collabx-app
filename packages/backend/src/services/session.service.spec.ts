@@ -3,6 +3,7 @@ import { SessionService } from './session.service';
 import { Redis } from 'ioredis';
 import { RedisService } from './redis.service';
 import { Session } from '@collabx/shared';
+import { DEFAULT_CONTENT } from '@collabx/shared';
 
 jest.mock('ioredis', () => {
   const Redis = jest.fn(() => ({
@@ -80,10 +81,13 @@ describe('SessionService', () => {
       const result = await service.getOrCreateSession(sessionId);
 
       expect(result.id).toBe(sessionId);
-      expect(result.content).toBe('');
+      expect(result.content).toBe(DEFAULT_CONTENT);
       expect(result.language).toBe('javascript');
       expect(result.users).toBeInstanceOf(Map);
-      expect(mockRedisService.setSession).toHaveBeenCalledWith(sessionId, expect.any(Object));
+      expect(mockRedisService.setSession).toHaveBeenCalledWith(
+        sessionId,
+        expect.any(Object),
+      );
     });
   });
 
@@ -106,7 +110,10 @@ describe('SessionService', () => {
 
       expect(result.username).toBe(username);
       expect(result.sessionId).toBe(sessionId);
-      expect(mockRedisService.setSession).toHaveBeenCalledWith(sessionId, expect.any(Object));
+      expect(mockRedisService.setSession).toHaveBeenCalledWith(
+        sessionId,
+        expect.any(Object),
+      );
     });
 
     it('should throw error if username is taken', async () => {
@@ -117,13 +124,26 @@ describe('SessionService', () => {
         content: '',
         language: 'javascript',
         lastActive: Date.now(),
-        users: new Map([['1', { id: '1', username, color: '#000000', lastActive: Date.now(), sessionId }]]),
+        users: new Map([
+          [
+            '1',
+            {
+              id: '1',
+              username,
+              color: '#000000',
+              lastActive: Date.now(),
+              sessionId,
+            },
+          ],
+        ]),
         createdAt: Date.now(),
       };
 
       mockRedisService.getSession.mockResolvedValue(existingSession);
 
-      await expect(service.addUserToSession(sessionId, username)).rejects.toThrow('Username already taken');
+      await expect(
+        service.addUserToSession(sessionId, username),
+      ).rejects.toThrow('Username already taken');
     });
   });
 
@@ -136,7 +156,18 @@ describe('SessionService', () => {
         content: '',
         language: 'javascript',
         lastActive: Date.now(),
-        users: new Map([[userId, { id: userId, username: 'test_user', color: '#000000', lastActive: Date.now(), sessionId }]]),
+        users: new Map([
+          [
+            userId,
+            {
+              id: userId,
+              username: 'test_user',
+              color: '#000000',
+              lastActive: Date.now(),
+              sessionId,
+            },
+          ],
+        ]),
         createdAt: Date.now(),
       };
 
@@ -144,7 +175,10 @@ describe('SessionService', () => {
 
       await service.removeUserFromSession(sessionId, userId);
 
-      expect(mockRedisService.setSession).toHaveBeenCalledWith(sessionId, expect.any(Object));
+      expect(mockRedisService.setSession).toHaveBeenCalledWith(
+        sessionId,
+        expect.any(Object),
+      );
     });
   });
 
@@ -165,7 +199,10 @@ describe('SessionService', () => {
 
       await service.updateSessionContent(sessionId, content);
 
-      expect(mockRedisService.setSession).toHaveBeenCalledWith(sessionId, expect.any(Object));
+      expect(mockRedisService.setSession).toHaveBeenCalledWith(
+        sessionId,
+        expect.any(Object),
+      );
     });
   });
 
@@ -186,7 +223,10 @@ describe('SessionService', () => {
 
       await service.updateSessionLanguage(sessionId, language);
 
-      expect(mockRedisService.setSession).toHaveBeenCalledWith(sessionId, expect.any(Object));
+      expect(mockRedisService.setSession).toHaveBeenCalledWith(
+        sessionId,
+        expect.any(Object),
+      );
     });
   });
-}); 
+});

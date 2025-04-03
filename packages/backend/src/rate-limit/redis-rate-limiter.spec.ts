@@ -65,7 +65,10 @@ describe('RedisRateLimiter', () => {
         exec: jest.fn().mockResolvedValue([['1'], [300]]),
       });
 
-      const result = await rateLimiter.isRateLimited(mockSocket as Socket, MessageType.JOIN);
+      const result = await rateLimiter.isRateLimited(
+        mockSocket as Socket,
+        MessageType.JOIN,
+      );
 
       expect(result.limited).toBe(false);
       expect(mockRedis.multi).toHaveBeenCalled();
@@ -79,7 +82,10 @@ describe('RedisRateLimiter', () => {
         exec: jest.fn().mockResolvedValue([['11'], [300]]),
       });
 
-      const result = await rateLimiter.isRateLimited(mockSocket as Socket, MessageType.JOIN);
+      const result = await rateLimiter.isRateLimited(
+        mockSocket as Socket,
+        MessageType.JOIN,
+      );
 
       expect(result.limited).toBe(true);
       expect(mockRedis.multi).toHaveBeenCalled();
@@ -94,7 +100,10 @@ describe('RedisRateLimiter', () => {
       });
       mockRedis.set.mockResolvedValue('OK');
 
-      const result = await rateLimiter.isRateLimited(mockSocket as Socket, MessageType.JOIN);
+      const result = await rateLimiter.isRateLimited(
+        mockSocket as Socket,
+        MessageType.JOIN,
+      );
 
       expect(result.limited).toBe(false);
       expect(mockRedis.set).toHaveBeenCalledWith(key, '1', 'EX', 300);
@@ -107,7 +116,9 @@ describe('RedisRateLimiter', () => {
         exec: jest.fn().mockRejectedValue(new Error('Redis error')),
       });
 
-      await expect(rateLimiter.isRateLimited(mockSocket as Socket, MessageType.JOIN)).resolves.toEqual({
+      await expect(
+        rateLimiter.isRateLimited(mockSocket as Socket, MessageType.JOIN),
+      ).resolves.toEqual({
         limited: false,
         message: 'Error checking rate limit',
       });
@@ -121,17 +132,19 @@ describe('RedisRateLimiter', () => {
       await rateLimiter.clear(mockSocket as Socket);
 
       expect(mockRedis.del).toHaveBeenCalledWith(
-        `rate_limit:${MessageType.JOIN}:${mockSocket.handshake?.query.sessionId}`
+        `rate_limit:${MessageType.JOIN}:${mockSocket.handshake?.query.sessionId}`,
       );
     });
 
     it('should handle Redis errors gracefully', async () => {
       mockRedis.del.mockRejectedValue(new Error('Redis error'));
 
-      await expect(rateLimiter.clear(mockSocket as Socket)).resolves.not.toThrow();
+      await expect(
+        rateLimiter.clear(mockSocket as Socket),
+      ).resolves.not.toThrow();
       expect(mockRedis.del).toHaveBeenCalledWith(
-        `rate_limit:${MessageType.JOIN}:${mockSocket.handshake?.query.sessionId}`
+        `rate_limit:${MessageType.JOIN}:${mockSocket.handshake?.query.sessionId}`,
       );
     });
   });
-}); 
+});

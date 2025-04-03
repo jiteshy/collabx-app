@@ -1,4 +1,10 @@
-import { IsString, IsNumber, ValidateNested, IsNotEmpty, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  ValidateNested,
+  IsNotEmpty,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SelectionDto {
@@ -72,4 +78,4 @@ export class ErrorMessageDto {
   @IsString()
   @IsNotEmpty()
   type: string;
-} 
+}

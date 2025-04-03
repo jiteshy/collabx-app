@@ -10,14 +10,17 @@ export class RedisRateLimiter {
 
   constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {}
 
-  async isRateLimited(socket: Socket, eventType: MessageType): Promise<{ limited: boolean; message?: string }> {
+  async isRateLimited(
+    socket: Socket,
+    eventType: MessageType,
+  ): Promise<{ limited: boolean; message?: string }> {
     try {
       const key = `rate_limit:${eventType}:${socket.handshake?.query.sessionId}`;
       const multi = this.redis.multi();
       multi.get(key);
       multi.ttl(key);
 
-      const [[count, ttl]] = await multi.exec() as [[null | string, number]];
+      const [[count, ttl]] = (await multi.exec()) as [[null | string, number]];
 
       if (!count || ttl < 0) {
         await this.redis.set(key, '1', 'EX', this.windowMs / 1000);
@@ -29,7 +32,12 @@ export class RedisRateLimiter {
         return { limited: true, message: 'Rate limit exceeded' };
       }
 
-      await this.redis.set(key, (currentCount + 1).toString(), 'EX', this.windowMs / 1000);
+      await this.redis.set(
+        key,
+        (currentCount + 1).toString(),
+        'EX',
+        this.windowMs / 1000,
+      );
       return { limited: false };
     } catch (error) {
       return { limited: false, message: 'Error checking rate limit' };
@@ -44,4 +52,4 @@ export class RedisRateLimiter {
       // Silently handle Redis errors
     }
   }
-} 
+}

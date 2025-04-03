@@ -100,6 +100,7 @@ export function MonacoEditor({ sendMessage, readOnly = false }: MonacoEditorProp
 
   const editorOptions = useMemo(
     (): MonacoEditorType.IStandaloneEditorConstructionOptions => ({
+      readOnly,
       minimap: { enabled: false },
       fontSize: 14,
       lineNumbers: 'on' as const,
@@ -140,7 +141,7 @@ export function MonacoEditor({ sendMessage, readOnly = false }: MonacoEditorProp
       mouseWheelScrollSensitivity: 1,
       maxTokenizationLineLength: 20000,
     }),
-    [],
+    [readOnly],
   );
 
   const editorProps = useMemo<EditorProps>(

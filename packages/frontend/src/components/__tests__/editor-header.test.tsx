@@ -61,13 +61,16 @@ describe('EditorHeader', () => {
     const { rerender } = render(<EditorHeader {...defaultProps} />);
     expect(screen.getByText('2 active')).toBeDefined();
 
-    const updatedUsers = [...mockUsers, {
-      id: '3',
-      username: 'newuser',
-      color: '#0000ff',
-      lastActive: Date.now(),
-      sessionId: 'test-session',
-    }];
+    const updatedUsers = [
+      ...mockUsers,
+      {
+        id: '3',
+        username: 'newuser',
+        color: '#0000ff',
+        lastActive: Date.now(),
+        sessionId: 'test-session',
+      },
+    ];
 
     rerender(<EditorHeader {...defaultProps} users={updatedUsers} />);
     expect(screen.getByText('3 active')).toBeDefined();
@@ -75,7 +78,7 @@ describe('EditorHeader', () => {
 
   it('shows current user label on hover', () => {
     render(<EditorHeader {...defaultProps} />);
-    
+
     // Find the current user's avatar
     const currentUserAvatar = document.querySelector('.group');
     expect(currentUserAvatar).toBeDefined();
@@ -90,7 +93,7 @@ describe('EditorHeader', () => {
 
   it('applies special border to current user avatar', () => {
     render(<EditorHeader {...defaultProps} />);
-    
+
     // Find the current user's avatar
     const currentUserAvatar = document.querySelector('.group div[style*="background-color"]');
     expect(currentUserAvatar).toBeDefined();
@@ -99,7 +102,7 @@ describe('EditorHeader', () => {
 
   it('shows username in tooltip on hover', () => {
     render(<EditorHeader {...defaultProps} />);
-    
+
     // Find the current user's avatar
     const currentUserAvatar = document.querySelector('.group');
     expect(currentUserAvatar).toBeDefined();

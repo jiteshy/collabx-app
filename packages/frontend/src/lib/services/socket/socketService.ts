@@ -6,7 +6,7 @@ import type {
   StoreHandlers,
   SocketConnectionState,
   SocketError,
-  ErrorRecoveryOptions
+  ErrorRecoveryOptions,
 } from './types';
 import { NotificationService } from '../notification/notificationService';
 
@@ -58,9 +58,9 @@ export class SocketService {
 
       this.manager = new Manager(wsUrl, {
         path: '/api/ws',
-        query: { 
+        query: {
           sessionId: this.sessionId,
-          username: this.username 
+          username: this.username,
         },
         reconnection: true,
         reconnectionAttempts: 5,
@@ -69,7 +69,7 @@ export class SocketService {
         timeout: 20000,
         autoConnect: true,
         transports: ['websocket', 'polling'],
-        forceNew: true
+        forceNew: true,
       });
 
       this.socket = this.manager.socket('/');
@@ -301,7 +301,7 @@ export class SocketService {
     this.connectionState.isConnecting = false;
 
     const socketError: SocketError = {
-      type: 'CONNECTION_ERROR',
+      type: error.type || 'CONNECTION_ERROR',
       message: error.message,
       details: error,
     };
@@ -314,8 +314,21 @@ export class SocketService {
       timestamp: new Date().toISOString(),
     });
 
-    this.onError(error.message);
-    this.storeHandlers.setError(error.message);
+    if (error.type === 'SESSION_FULL') {
+      this.storeHandlers.onSessionFull();
+    } else if (error.type === 'DUPLICATE_USERNAME') {
+      const message = 'Username is already taken. Please choose a different username.';
+      this.onError(message);
+      this.storeHandlers.setError(message);
+    } else if (error.type === 'SYNC_ERROR') {
+      this.handleSyncError();
+    } else if (error.type === 'INVALID_PAYLOAD') {
+      this.handleInvalidPayloadError();
+    } else {
+      this.onError(error.message);
+      this.storeHandlers.setError(error.message);
+    }
+
     this.attemptErrorRecovery();
   }
 
@@ -349,6 +362,8 @@ export class SocketService {
     }
 
     if (Array.isArray(payload.users)) {
+      this.storeHandlers.resetUser();
+      
       payload.users.forEach((user) => {
         if (user && typeof user.id === 'string' && typeof user.username === 'string') {
           this.storeHandlers.addUser(user);
@@ -358,59 +373,85 @@ export class SocketService {
   }
 
   private handleUserJoined(payload: SocketPayloads[MessageType.USER_JOINED]): void {
-    if (payload?.user) {
-      this.storeHandlers.addUser(payload.user);
-      NotificationService.showUserJoined(payload.user.username, this.username);
+    if (!payload || !payload.user || !payload.user.id || !payload.user.username) {
+      console.warn('Invalid user joined payload:', payload);
+      return;
     }
+    this.storeHandlers.addUser(payload.user);
+    NotificationService.showUserJoined(payload.user.username, this.username);
   }
 
   private handleUserLeft(payload: SocketPayloads[MessageType.USER_LEFT]): void {
-    if (payload?.user?.id) {
-      this.storeHandlers.removeUser(payload.user.id);
-      NotificationService.showUserLeft(payload.user.username, this.username);
+    if (!payload || !payload.user || !payload.user.id || !payload.user.username) {
+      console.warn('Invalid user left payload:', payload);
+      return;
     }
+
+    // Remove the user from the store
+    this.storeHandlers.removeUser(payload.user.id);
+    
+    // Show notification
+    NotificationService.showUserLeft(payload.user.username, this.username);
   }
 
   private handleContentChange(payload: SocketPayloads[MessageType.CONTENT_CHANGE]): void {
-    if (payload?.content) {
-      this.storeHandlers.setContent(payload.content);
+    if (!payload || !payload.content) {
+      console.warn('Invalid content change payload:', payload);
+      this.onError('Invalid content change payload received');
+      return;
     }
+    this.storeHandlers.setContent(payload.content);
   }
 
   private handleLanguageChange(payload: SocketPayloads[MessageType.LANGUAGE_CHANGE]): void {
-    if (payload?.language) {
-      this.storeHandlers.setLanguage(payload.language);
+    if (!payload || !payload.language) {
+      console.warn('Invalid language change payload:', payload);
+      this.onError('Invalid language change payload received');
+      return;
     }
+    this.storeHandlers.setLanguage(payload.language);
   }
 
   private handleCursorMove(payload: SocketPayloads[MessageType.CURSOR_MOVE]): void {
-    if (payload?.position && payload?.user) {
-      this.storeHandlers.updateCursor({
-        user: payload.user,
-        position: payload.position,
-      });
+    if (
+      !payload ||
+      !payload.user ||
+      !payload.user.id ||
+      !payload.position ||
+      !payload.position.top ||
+      !payload.position.left
+    ) {
+      console.warn('Invalid cursor move payload:', payload);
+      return;
     }
+    this.storeHandlers.updateCursor(payload);
   }
 
   private handleSelectionChange(payload: SocketPayloads[MessageType.SELECTION_CHANGE]): void {
-    if (payload?.selection && payload?.user) {
-      this.storeHandlers.updateSelection({
-        user: payload.user,
-        selection: payload.selection,
-      });
+    if (
+      !payload ||
+      !payload.user ||
+      !payload.user.id ||
+      !payload.selection ||
+      typeof payload.selection.start !== 'number' ||
+      typeof payload.selection.end !== 'number'
+    ) {
+      console.warn('Invalid selection change payload:', payload);
+      return;
     }
+    this.storeHandlers.updateSelection(payload);
   }
 
   private handleJoin(payload: SocketPayloads[MessageType.JOIN]): void {
     console.log('Received JOIN response:', payload);
-    if (payload?.user) {
+    if (payload?.user && payload.user.id && payload.user.username) {
       console.log('Adding user to store:', payload.user);
       this.storeHandlers.addUser(payload.user);
       NotificationService.showUserJoined(payload.user.username, this.username);
       this.connectionState.isInitialConnection = false;
       console.log('Updated connection state:', this.connectionState);
     } else {
-      console.warn('Received JOIN response without user object:', payload);
+      console.warn('Received JOIN response without valid user object:', payload);
     }
   }
 

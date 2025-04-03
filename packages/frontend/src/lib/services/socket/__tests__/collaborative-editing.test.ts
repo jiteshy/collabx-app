@@ -43,9 +43,9 @@ describe('Collaborative Editing', () => {
   });
 
   const findEventHandler = (eventName: string): SocketEventHandler | undefined => {
-    const eventTuple = mockSocket.on.mock.calls.find(
-      (call) => call[0] === eventName,
-    ) as SocketEventTuple | undefined;
+    const eventTuple = mockSocket.on.mock.calls.find((call) => call[0] === eventName) as
+      | SocketEventTuple
+      | undefined;
     return eventTuple?.[1];
   };
 
@@ -220,4 +220,4 @@ describe('Collaborative Editing', () => {
       expect(mockSocket.emit).toHaveBeenCalledWith(MessageType.SYNC_REQUEST);
     });
   });
-}); 
+});

@@ -19,7 +19,10 @@ export class RateLimiter {
     this.limits.set(event, config);
   }
 
-  isRateLimited(socket: Socket, event: string): { limited: boolean; message?: string } {
+  isRateLimited(
+    socket: Socket,
+    event: string,
+  ): { limited: boolean; message?: string } {
     const limit = this.limits.get(event);
     if (!limit) return { limited: false };
 
@@ -67,4 +70,4 @@ export class RateLimiter {
       eventStore.delete(socketId);
     }
   }
-} 
+}

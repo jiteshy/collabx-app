@@ -54,7 +54,7 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: Socket) {
     console.log('Client connected:', client.id);
     console.log('Client handshake:', client.handshake);
-    
+
     const sessionId = client.handshake.query.sessionId as string;
     if (!sessionId) {
       console.log('No session ID provided');
@@ -96,10 +96,16 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(client: Socket) {
     const sessionId = client.handshake.query.sessionId as string;
     const userId = client.data.userId;
-    
+
     if (userId) {
-      this.sessionService.removeUserFromSession(sessionId, userId);
-      client.to(sessionId).emit(MessageType.USER_LEFT, { userId });
+      const session = this.sessionService.getSession(sessionId);
+      if (session) {
+        const user = session.users.get(userId);
+        if (user) {
+          this.sessionService.removeUserFromSession(sessionId, userId);
+          client.to(sessionId).emit(MessageType.USER_LEFT, { user });
+        }
+      }
     }
   }
 
@@ -109,14 +115,14 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: { username: string },
     callback?: (response: { user: User }) => void,
   ) {
-    console.log('Join request received:', { 
-      clientId: client.id, 
+    console.log('Join request received:', {
+      clientId: client.id,
       username: payload.username,
       sessionId: client.handshake.query.sessionId,
       socketData: client.data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     const sessionId = client.handshake.query.sessionId as string;
     if (!sessionId) {
       console.error('No session ID in JOIN request');
@@ -124,7 +130,10 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const validationError = ValidationService.validateEventPayload(MessageType.JOIN, payload);
+    const validationError = ValidationService.validateEventPayload(
+      MessageType.JOIN,
+      payload,
+    );
     if (validationError) {
       console.error('Validation error in JOIN request:', validationError);
       client.emit(MessageType.ERROR, validationError);
@@ -132,7 +141,10 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // Check rate limit
-    const { limited, message } = this.rateLimiter.isRateLimited(client.id, MessageType.JOIN);
+    const { limited, message } = this.rateLimiter.isRateLimited(
+      client.id,
+      MessageType.JOIN,
+    );
     if (limited) {
       console.error('Rate limit exceeded:', { clientId: client.id, message });
       client.emit(MessageType.ERROR, {
@@ -181,7 +193,7 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log('Sending SYNC_RESPONSE to all clients in session:', {
         content: session.content,
         language: session.language,
-        users: Array.from(session.users.values())
+        users: Array.from(session.users.values()),
       });
       this.server.to(sessionId).emit(MessageType.SYNC_RESPONSE, {
         content: session.content,
@@ -197,14 +209,20 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: { content: string },
   ) {
     const sessionId = client.handshake.query.sessionId as string;
-    const validationError = ValidationService.validateEventPayload(MessageType.CONTENT_CHANGE, payload);
-    
+    const validationError = ValidationService.validateEventPayload(
+      MessageType.CONTENT_CHANGE,
+      payload,
+    );
+
     if (validationError) {
       client.emit(MessageType.ERROR, validationError);
       return;
     }
 
-    const { limited, message } = this.rateLimiter.isRateLimited(client.id, MessageType.CONTENT_CHANGE);
+    const { limited, message } = this.rateLimiter.isRateLimited(
+      client.id,
+      MessageType.CONTENT_CHANGE,
+    );
     if (limited) {
       client.emit(MessageType.ERROR, {
         type: 'RATE_LIMIT_EXCEEDED',
@@ -229,8 +247,11 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: { language: string },
   ) {
     const sessionId = client.handshake.query.sessionId as string;
-    const validationError = ValidationService.validateEventPayload(MessageType.LANGUAGE_CHANGE, payload);
-    
+    const validationError = ValidationService.validateEventPayload(
+      MessageType.LANGUAGE_CHANGE,
+      payload,
+    );
+
     if (validationError) {
       client.emit(MessageType.ERROR, validationError);
       return;
@@ -252,14 +273,20 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: { position: { top: number; left: number } },
   ) {
     const sessionId = client.handshake.query.sessionId as string;
-    const validationError = ValidationService.validateEventPayload(MessageType.CURSOR_MOVE, payload);
-    
+    const validationError = ValidationService.validateEventPayload(
+      MessageType.CURSOR_MOVE,
+      payload,
+    );
+
     if (validationError) {
       client.emit(MessageType.ERROR, validationError);
       return;
     }
 
-    const { limited, message } = this.rateLimiter.isRateLimited(client.id, MessageType.CURSOR_MOVE);
+    const { limited, message } = this.rateLimiter.isRateLimited(
+      client.id,
+      MessageType.CURSOR_MOVE,
+    );
     if (limited) {
       client.emit(MessageType.ERROR, {
         type: 'RATE_LIMIT_EXCEEDED',
@@ -283,8 +310,11 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: { selection: { start: number; end: number } },
   ) {
     const sessionId = client.handshake.query.sessionId as string;
-    const validationError = ValidationService.validateEventPayload(MessageType.SELECTION_CHANGE, payload);
-    
+    const validationError = ValidationService.validateEventPayload(
+      MessageType.SELECTION_CHANGE,
+      payload,
+    );
+
     if (validationError) {
       client.emit(MessageType.ERROR, validationError);
       return;
@@ -302,12 +332,15 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage(MessageType.SYNC_REQUEST)
   handleSyncRequest(@ConnectedSocket() client: Socket) {
     console.log('Sync request received from client:', client.id);
-    
+
     const sessionId = client.handshake.query.sessionId as string;
     const session = this.sessionService.getSession(sessionId);
-    
+
     if (session) {
-      console.log('Sending sync response with users:', Array.from(session.users.values()));
+      console.log(
+        'Sending sync response with users:',
+        Array.from(session.users.values()),
+      );
       client.emit(MessageType.SYNC_RESPONSE, {
         content: session.content,
         language: session.language,
@@ -327,9 +360,17 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private generateUserColor(): string {
     const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD',
-      '#D4A5A5', '#9B59B6', '#3498DB', '#E67E22', '#1ABC9C',
+      '#FF6B6B',
+      '#4ECDC4',
+      '#45B7D1',
+      '#96CEB4',
+      '#FFEEAD',
+      '#D4A5A5',
+      '#9B59B6',
+      '#3498DB',
+      '#E67E22',
+      '#1ABC9C',
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   }
-} 
+}

@@ -49,20 +49,35 @@ describe('RateLimiterService', () => {
     it('should return not limited when under rate limit', async () => {
       mockRedisRateLimiter.isRateLimited.mockResolvedValue({ limited: false });
 
-      const result = await service.isRateLimited(mockSocket as Socket, MessageType.JOIN);
+      const result = await service.isRateLimited(
+        mockSocket as Socket,
+        MessageType.JOIN,
+      );
 
       expect(result).toEqual({ limited: false });
-      expect(mockRedisRateLimiter.isRateLimited).toHaveBeenCalledWith(mockSocket, MessageType.JOIN);
+      expect(mockRedisRateLimiter.isRateLimited).toHaveBeenCalledWith(
+        mockSocket,
+        MessageType.JOIN,
+      );
     });
 
     it('should return limited when exceeding rate limit', async () => {
       const message = 'Rate limit exceeded';
-      mockRedisRateLimiter.isRateLimited.mockResolvedValue({ limited: true, message });
+      mockRedisRateLimiter.isRateLimited.mockResolvedValue({
+        limited: true,
+        message,
+      });
 
-      const result = await service.isRateLimited(mockSocket as Socket, MessageType.JOIN);
+      const result = await service.isRateLimited(
+        mockSocket as Socket,
+        MessageType.JOIN,
+      );
 
       expect(result).toEqual({ limited: true, message });
-      expect(mockRedisRateLimiter.isRateLimited).toHaveBeenCalledWith(mockSocket, MessageType.JOIN);
+      expect(mockRedisRateLimiter.isRateLimited).toHaveBeenCalledWith(
+        mockSocket,
+        MessageType.JOIN,
+      );
     });
   });
 
@@ -73,4 +88,4 @@ describe('RateLimiterService', () => {
       expect(mockRedisRateLimiter.clear).toHaveBeenCalledWith(mockSocket);
     });
   });
-}); 
+});

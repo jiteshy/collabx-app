@@ -30,7 +30,8 @@ export function InvalidSessionDialog({ isOpen, onOpenChange }: InvalidSessionDia
         <DialogHeader>
           <DialogTitle>Invalid Session</DialogTitle>
           <DialogDescription>
-            The session ID you're trying to join is invalid. Session IDs can only contain letters and numbers.
+            The session ID you're trying to join is invalid. Session IDs can only contain letters
+            and numbers.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -39,4 +40,4 @@ export function InvalidSessionDialog({ isOpen, onOpenChange }: InvalidSessionDia
       </DialogContent>
     </Dialog>
   );
-} 
+}

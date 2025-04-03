@@ -7,11 +7,14 @@ import { MessageType } from '@collabx/shared';
 export class RateLimiterService {
   constructor(private readonly redisRateLimiter: RedisRateLimiter) {}
 
-  async isRateLimited(socket: Socket, event: MessageType): Promise<{ limited: boolean; message?: string }> {
+  async isRateLimited(
+    socket: Socket,
+    event: MessageType,
+  ): Promise<{ limited: boolean; message?: string }> {
     return this.redisRateLimiter.isRateLimited(socket, event);
   }
 
   async clear(socket: Socket): Promise<void> {
     await this.redisRateLimiter.clear(socket);
   }
-} 
+}

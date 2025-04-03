@@ -21,29 +21,43 @@ jest.mock('next-themes', () => ({
 }));
 
 // Mock Monaco Editor
-jest.mock('@monaco-editor/react', () => ({
-  Editor: ({ value, language, theme, onMount, onChange }: any) => {
-    // Simulate editor mount
-    setTimeout(() => {
-      onMount({
-        focus: jest.fn(),
-        updateOptions: jest.fn(),
-      });
-    }, 0);
+jest.mock('@monaco-editor/react', () => {
+  const mockFocus = jest.fn();
+  return {
+    Editor: ({ value, language, theme, onMount, onChange, options }: any) => {
+      // Simulate editor mount
+      setTimeout(() => {
+        onMount({
+          focus: mockFocus,
+          updateOptions: jest.fn(),
+        });
+      }, 0);
 
-    return (
-      <div data-testid="monaco-editor">
-        <textarea
-          data-testid="editor-textarea"
-          data-language={language}
-          data-theme={theme}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      </div>
-    );
-  },
-}));
+      return (
+        <div data-testid="monaco-editor">
+          <textarea
+            data-testid="editor-textarea"
+            data-language={language}
+            data-theme={theme}
+            data-read-only={options?.readOnly?.toString()}
+            value={value}
+            readOnly={options?.readOnly}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </div>
+      );
+    },
+    loader: {
+      init: () =>
+        Promise.resolve({
+          editor: {
+            defineTheme: jest.fn(),
+          },
+        }),
+    },
+    __mockFocus: mockFocus,
+  };
+});
 
 describe('MonacoEditor', () => {
   const mockSendMessage = jest.fn();
@@ -99,7 +113,6 @@ describe('MonacoEditor', () => {
   });
 
   it('focuses editor on mount', async () => {
-    const mockFocus = jest.fn();
     jest.spyOn(global, 'setTimeout').mockImplementation((cb) => {
       cb();
       return 0 as any;
@@ -109,6 +122,7 @@ describe('MonacoEditor', () => {
       render(<MonacoEditor sessionId="test" username="testuser" sendMessage={mockSendMessage} />);
     });
 
+    const mockFocus = jest.requireMock('@monaco-editor/react').__mockFocus;
     expect(mockFocus).toHaveBeenCalled();
   });
 
@@ -134,11 +148,16 @@ describe('MonacoEditor', () => {
   it('applies read-only mode correctly', async () => {
     await act(async () => {
       render(
-        <MonacoEditor sessionId="test" username="testuser" sendMessage={mockSendMessage} readOnly />,
+        <MonacoEditor
+          sessionId="test"
+          username="testuser"
+          sendMessage={mockSendMessage}
+          readOnly
+        />,
       );
     });
 
     const textarea = screen.getByTestId('editor-textarea') as HTMLTextAreaElement;
-    expect(textarea.getAttribute('readonly')).toBe('');
+    expect(textarea.getAttribute('data-read-only')).toBe('true');
   });
 });

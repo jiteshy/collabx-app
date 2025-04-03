@@ -6,4 +6,4 @@ import { RedisRateLimiter } from './redis-rate-limiter';
   providers: [RateLimiter, RedisRateLimiter],
   exports: [RateLimiter, RedisRateLimiter],
 })
-export class RateLimitModule {} 
+export class RateLimitModule {}

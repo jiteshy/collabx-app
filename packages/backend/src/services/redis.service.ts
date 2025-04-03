@@ -55,4 +55,4 @@ export class RedisService {
   async setSessionTTL(sessionId: string, ttl: number): Promise<void> {
     await this.redis.expire(`${this.SESSION_PREFIX}${sessionId}`, ttl);
   }
-} 
+}

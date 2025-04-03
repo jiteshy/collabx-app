@@ -31,4 +31,4 @@ export interface JoinMessage {
 export interface LeaveMessage {
   sessionId: string;
   userId: string;
-} 
+}
