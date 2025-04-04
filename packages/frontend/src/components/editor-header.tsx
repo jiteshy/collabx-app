@@ -16,6 +16,7 @@ interface EditorHeaderProps {
   username: string;
   readOnly: boolean;
   setLanguage: (value: string) => void;
+  typingUsers: Map<string, { isTyping: boolean; lastTyped: number }>;
 }
 
 export function EditorHeader({
@@ -24,9 +25,10 @@ export function EditorHeader({
   username,
   readOnly,
   setLanguage,
+  typingUsers,
 }: EditorHeaderProps) {
   return (
-    <div className="pr-4 lg:pr-6 pl-12 h-12 flex items-center justify-between">
+    <div className="pr-4 lg:pr-6 pl-4 md:pl-12 h-12 flex items-center justify-between">
       <div className="flex items-center space-x-4">
         {readOnly ? (
           <div className="flex items-center space-x-2">
@@ -69,10 +71,8 @@ export function EditorHeader({
               className="relative group"
             >
               <div
-                className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 flex items-center justify-center text-xs text-white shadow-sm transition-all duration-200 hover:scale-110 hover:z-10 ${
-                  user.username === username
-                    ? 'border-zinc-800 dark:border-zinc-100'
-                    : 'border-zinc-100 dark:border-zinc-800'
+                className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 flex items-center justify-center text-xs text-white shadow-sm transition-all duration-200 hover:scale-110 hover:z-10 border-zinc-100 dark:border-zinc-800 ${
+                  typingUsers?.get(user.id)?.isTyping ? 'ring-2 ring-blue-500 animate-pulse' : ''
                 }`}
                 style={{ backgroundColor: user.color }}
               >

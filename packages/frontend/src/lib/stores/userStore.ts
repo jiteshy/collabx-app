@@ -1,16 +1,19 @@
 import { create } from 'zustand';
-import { User, UserCursor, UserSelection } from '@collabx/shared';
+import { User, UserCursor, UserSelection, UserTypingStatus } from '@collabx/shared';
 
 interface UserState {
   users: User[];
   cursors: UserCursor[];
   selections: UserSelection[];
+  typingUsers: Map<string, UserTypingStatus>;
   addUser: (user: User) => void;
   removeUser: (userId: string) => void;
   updateCursor: (cursor: UserCursor) => void;
   removeCursor: (userId: string) => void;
   updateSelection: (selection: UserSelection) => void;
   removeSelection: (userId: string) => void;
+  updateTypingStatus: (userId: string, status: UserTypingStatus) => void;
+  removeTypingStatus: (userId: string) => void;
   reset: () => void;
 }
 
@@ -18,6 +21,7 @@ export const useUserStore = create<UserState>((set) => ({
   users: [],
   cursors: [],
   selections: [],
+  typingUsers: new Map(),
 
   addUser: (user) => {
     set((state) => {
@@ -34,6 +38,7 @@ export const useUserStore = create<UserState>((set) => ({
       users: state.users.filter((u) => u.id !== userId),
       cursors: state.cursors.filter((c) => c.user.id !== userId),
       selections: state.selections.filter((s) => s.user.id !== userId),
+      typingUsers: new Map(Array.from(state.typingUsers.entries()).filter(([id]) => id !== userId)),
     }));
   },
 
@@ -61,10 +66,23 @@ export const useUserStore = create<UserState>((set) => ({
     }));
   },
 
+  updateTypingStatus: (userId, status) => {
+    set((state) => ({
+      typingUsers: new Map(state.typingUsers).set(userId, status),
+    }));
+  },
+
+  removeTypingStatus: (userId) => {
+    set((state) => ({
+      typingUsers: new Map(Array.from(state.typingUsers.entries()).filter(([id]) => id !== userId)),
+    }));
+  },
+
   reset: () =>
     set({
       users: [],
       cursors: [],
       selections: [],
+      typingUsers: new Map(),
     }),
 }));

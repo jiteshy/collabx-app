@@ -130,6 +130,21 @@ export class ValidationService {
         }
         return null;
 
+      case MessageType.TYPING_STATUS:
+        if (!payload || typeof payload !== 'object' || !('isTyping' in payload)) {
+          return {
+            type: 'INVALID_PAYLOAD',
+            message: 'Invalid typing status payload',
+          };
+        }
+        if (typeof (payload as { isTyping: boolean }).isTyping !== 'boolean') {
+          return {
+            type: 'INVALID_PAYLOAD',
+            message: 'isTyping must be a boolean',
+          };
+        }
+        return null;
+
       default:
         return null;
     }

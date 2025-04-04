@@ -1,5 +1,5 @@
 import { Manager } from 'socket.io-client';
-import { MessageType, User } from '@collabx/shared';
+import { MessageType, User, UserTypingStatus } from '@collabx/shared';
 import type {
   SocketPayloads,
   SocketEvents,
@@ -102,6 +102,7 @@ export class SocketService {
       [MessageType.REDO]: this.handleRedo.bind(this),
       [MessageType.SYNC_RESPONSE]: this.handleSyncResponse.bind(this),
       [MessageType.SYNC_REQUEST]: this.handleSyncRequest.bind(this),
+      [MessageType.TYPING_STATUS]: this.handleTypingStatus.bind(this),
     };
 
     this.socket.on('connect', () => {
@@ -128,7 +129,7 @@ export class SocketService {
       console.log(`Setting up listener for event: ${event}`);
       this.socket?.on(event, (data: unknown) => {
         console.log(`Received ${event} event:`, data);
-        handler(data);
+        handler(data as never);
       });
     });
   }
@@ -392,6 +393,21 @@ export class SocketService {
     
     // Show notification
     NotificationService.showUserLeft(payload.user.username, this.username);
+  }
+
+  private handleTypingStatus(payload: SocketPayloads[MessageType.TYPING_STATUS]): void {
+    if (!payload || !payload.user || !payload.user.id) {
+      console.warn('Invalid typing status payload:', payload);
+      return;
+    }
+
+    const typingStatus: UserTypingStatus = {
+      user: payload.user,
+      isTyping: payload.isTyping,
+      lastTyped: Date.now()
+    };
+
+    this.storeHandlers.updateTypingStatus(payload.user.id, typingStatus);
   }
 
   private handleContentChange(payload: SocketPayloads[MessageType.CONTENT_CHANGE]): void {

@@ -14,6 +14,7 @@ import { Footer } from '@/components/Footer';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { SessionFullDialog } from '@/components/session-full-dialog';
 import { useTheme } from 'next-themes';
+
 export default function SessionPage() {
   const params = useParams();
   const sessionId = params.sessionId as string;
@@ -23,6 +24,7 @@ export default function SessionPage() {
   const users = useUserStore((state) => state.users);
   const { sendMessage, isSessionFull, setIsSessionFull } = useWebSocket(sessionId, username || '');
   const { setTheme, theme } = useTheme();
+  const typingUsers = useUserStore((state) => state.typingUsers);
 
   useEffect(() => {
     const randomUsername = getRandomUsername();
@@ -109,6 +111,7 @@ export default function SessionPage() {
                 users={users}
                 username={username}
                 readOnly={readOnly}
+                typingUsers={typingUsers}
               />
 
               <div className="flex-1">

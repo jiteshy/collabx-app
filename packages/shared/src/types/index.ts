@@ -13,6 +13,7 @@ export enum MessageType {
   REDO = 'redo',
   SYNC_RESPONSE = 'sync_response',
   SYNC_REQUEST = 'sync_request',
+  TYPING_STATUS = 'typing_status',
 }
 
 export interface User {
@@ -79,4 +80,10 @@ export interface RateLimitState {
 export interface ErrorMessage {
   message: string;
   type: string;
-} 
+}
+
+export interface UserTypingStatus {
+  user: User;
+  isTyping: boolean;
+  lastTyped: number;
+}

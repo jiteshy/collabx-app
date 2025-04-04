@@ -96,7 +96,8 @@ alwaysApply: true
    - Changes: Dark theme set by default and persisted in local storage
 
 10. [ ] Cursor Synchronization
-    - Implement cursor position tracking
+    - Implement cursor position tracking for each user
+    - Use the avatar color for cursor color
     - Add cursor movement events
     - Handle cursor updates
     - Add tests for cursor sync

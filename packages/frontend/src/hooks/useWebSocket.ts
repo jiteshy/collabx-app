@@ -2,14 +2,22 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { SocketService } from '@/lib/services/socket';
 import { useEditorStore } from '@/lib/stores/editorStore';
 import { useUserStore } from '@/lib/stores/userStore';
-import { MessageType, UserCursor, UserSelection } from '@collabx/shared';
+import { MessageType, UserCursor, UserSelection, UserTypingStatus } from '@collabx/shared';
 import { SocketPayloads } from '@/lib/services/socket/types';
 
 export const useWebSocket = (sessionId: string, username: string) => {
   const socketServiceRef = useRef<SocketService | null>(null);
   const [isSessionFull, setIsSessionFull] = useState(false);
   const { setContent, setLanguage, setError, reset: resetEditor } = useEditorStore();
-  const { addUser, removeUser, updateCursor, updateSelection, reset: resetUser } = useUserStore();
+  const { 
+    addUser, 
+    removeUser, 
+    updateCursor, 
+    updateSelection, 
+    updateTypingStatus,
+    removeTypingStatus,
+    reset: resetUser 
+  } = useUserStore();
 
   const handleError = useCallback(
     (message: string) => {
@@ -42,6 +50,12 @@ export const useWebSocket = (sessionId: string, username: string) => {
         };
         updateSelection(selection);
       },
+      updateTypingStatus: (userId: string, status: UserTypingStatus) => {
+        updateTypingStatus(userId, status);
+      },
+      removeTypingStatus: (userId: string) => {
+        removeTypingStatus(userId);
+      },
       resetUser,
       onSessionFull: () => setIsSessionFull(true),
     }),
@@ -54,6 +68,8 @@ export const useWebSocket = (sessionId: string, username: string) => {
       removeUser,
       updateCursor,
       updateSelection,
+      updateTypingStatus,
+      removeTypingStatus,
       resetUser,
     ],
   );

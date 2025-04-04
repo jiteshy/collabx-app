@@ -371,6 +371,35 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage(MessageType.TYPING_STATUS)
+  async handleTypingStatus(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { isTyping: boolean },
+  ) {
+    const sessionId = client.handshake.query.sessionId as string;
+    const validationError = ValidationService.validateEventPayload(
+      MessageType.TYPING_STATUS,
+      payload,
+    );
+
+    if (validationError) {
+      client.emit(MessageType.ERROR, validationError);
+      return;
+    }
+
+    try {
+      const user = await this.getUserFromSocket(client);
+      if (user) {
+        client.to(sessionId).emit(MessageType.TYPING_STATUS, {
+          isTyping: payload.isTyping,
+          user,
+        });
+      }
+    } catch (error) {
+      console.error('Error handling typing status:', error);
+    }
+  }
+
   private async getUserFromSocket(client: Socket) {
     const sessionId = client.handshake.query.sessionId as string;
     const userId = client.data.userId;

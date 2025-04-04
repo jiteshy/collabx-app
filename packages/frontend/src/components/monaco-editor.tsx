@@ -5,10 +5,11 @@ import dynamic from 'next/dynamic';
 import type { editor as MonacoEditorType } from 'monaco-editor';
 import type { EditorProps } from '@monaco-editor/react';
 import { useEditorStore } from '@/lib/stores';
-import { DEFAULT_CONTENT, DEFAULT_LANGUAGE } from '@collabx/shared';
-import { MessageType } from '@collabx/shared';
+import { useUserStore } from '@/lib/stores/userStore';
+import { DEFAULT_CONTENT, DEFAULT_LANGUAGE, MessageType } from '@collabx/shared';
 import { useTheme } from 'next-themes';
 import { EditorShimmer } from './editor-shimmer';
+import { TypingIndicator } from './typing-indicator';
 
 // Dynamically import Monaco editor
 const Editor = dynamic(() => import('@monaco-editor/react').then((mod) => mod.Editor), {
@@ -43,14 +44,16 @@ const darkTheme: MonacoEditorType.IStandaloneThemeData = {
 interface MonacoEditorProps {
   sessionId: string;
   username: string;
-  sendMessage: (type: MessageType, payload: { content: string }) => void;
+  sendMessage: (type: MessageType, payload: { content?: string; isTyping?: boolean }) => void;
   readOnly?: boolean;
 }
 
-export function MonacoEditor({ sendMessage, readOnly = false }: MonacoEditorProps) {
+export function MonacoEditor({ sendMessage, readOnly = false, username }: MonacoEditorProps) {
   const { content, language, setContent } = useEditorStore();
+  const typingUsers = useUserStore((state) => state.typingUsers);
   const { theme } = useTheme();
   const editorRef = useRef<MonacoEditorType.IStandaloneCodeEditor | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     import('@monaco-editor/react').then(({ loader }) => {
@@ -90,13 +93,37 @@ export function MonacoEditor({ sendMessage, readOnly = false }: MonacoEditorProp
 
   const handleEditorChange = useCallback(
     (value: string | undefined) => {
-      if (value !== undefined) {
-        setContent(value);
-        sendMessage(MessageType.CONTENT_CHANGE, { content: value });
+      if (!value) return;
+
+      // Update content in store
+      setContent(value);
+
+      // Send content change
+      sendMessage(MessageType.CONTENT_CHANGE, { content: value });
+
+      // Send typing status
+      sendMessage(MessageType.TYPING_STATUS, { isTyping: true });
+
+      // Clear typing status after 1 second of inactivity
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
       }
+
+      typingTimeoutRef.current = setTimeout(() => {
+        sendMessage(MessageType.TYPING_STATUS, { isTyping: false });
+      }, 1000);
     },
     [sendMessage, setContent],
   );
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const editorOptions = useMemo(
     (): MonacoEditorType.IStandaloneEditorConstructionOptions => ({
@@ -181,10 +208,11 @@ export function MonacoEditor({ sendMessage, readOnly = false }: MonacoEditorProp
   }, [editorRef, readOnly]);
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full relative">
       <Suspense fallback={<EditorShimmer />}>
         <Editor {...editorProps} />
       </Suspense>
+      <TypingIndicator typingUsers={typingUsers} currentUsername={username} />
     </div>
   );
 }
