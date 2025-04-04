@@ -14,14 +14,16 @@ export class SessionService {
   private readonly MAX_USERS_PER_SESSION: number;
   private readonly SESSION_TTL: number;
   private readonly EMPTY_SESSION_TTL: number;
+  private readonly INACTIVITY_TIMEOUT: number;
 
   constructor(
     private readonly redisService: RedisService,
     private readonly configService: ConfigService,
   ) {
     this.MAX_USERS_PER_SESSION = this.configService.get<number>('MAX_USERS_PER_SESSION', 5);
-    this.SESSION_TTL = this.configService.get<number>('SESSION_TTL', 86400); // 24 hours in seconds
+    this.SESSION_TTL = this.configService.get<number>('SESSION_TTL', 14400); // 4 hours in seconds
     this.EMPTY_SESSION_TTL = this.configService.get<number>('EMPTY_SESSION_TTL', 3600); // 1 hour in seconds
+    this.INACTIVITY_TIMEOUT = this.configService.get<number>('INACTIVITY_TIMEOUT', 900); // 15 minutes in seconds
   }
 
   async getOrCreateSession(sessionId: string): Promise<Session> {
@@ -123,9 +125,14 @@ export class SessionService {
   }
 
   async cleanupInactiveSessions(): Promise<void> {
-    // This method is now a no-op as we rely on Redis TTL
-    // Redis will automatically remove sessions after their TTL expires
-    // Empty sessions will be removed after 1 hour
-    // Active sessions will be removed after 24 hours of inactivity
+    const sessions = await this.redisService.getAllSessions();
+    const now = Date.now();
+
+    for (const session of sessions) {
+      const timeSinceLastActive = now - session.lastActive;
+      if (timeSinceLastActive >= this.INACTIVITY_TIMEOUT * 1000) {
+        await this.redisService.deleteSession(session.id);
+      }
+    }
   }
 }

@@ -37,6 +37,7 @@ describe('SessionService', () => {
       deleteSession: jest.fn(),
       updateSessionLastActive: jest.fn(),
       setSessionTTL: jest.fn(),
+      getAllSessions: jest.fn(),
     } as unknown as jest.Mocked<RedisService>;
 
     mockConfigService = {
@@ -45,6 +46,7 @@ describe('SessionService', () => {
           MAX_USERS_PER_SESSION: 5,
           SESSION_TTL: 86400,
           EMPTY_SESSION_TTL: 3600,
+          INACTIVITY_TIMEOUT: 900, // 15 minutes in seconds
         };
         return config[key];
       }),
@@ -269,6 +271,44 @@ describe('SessionService', () => {
         sessionId,
         expect.any(Object),
       );
+    });
+  });
+
+  describe('cleanupInactiveSessions', () => {
+    it('should delete inactive sessions', async () => {
+      const now = Date.now();
+      const activeSession: Session = {
+        id: 'active-session',
+        content: '',
+        language: 'javascript',
+        lastActive: now,
+        users: new Map(),
+        createdAt: now,
+      };
+
+      const inactiveSession: Session = {
+        id: 'inactive-session',
+        content: '',
+        language: 'javascript',
+        lastActive: now - 16 * 60 * 1000, // 16 minutes ago
+        users: new Map(),
+        createdAt: now - 16 * 60 * 1000,
+      };
+
+      mockRedisService.getAllSessions.mockResolvedValue([activeSession, inactiveSession]);
+
+      await service.cleanupInactiveSessions();
+
+      expect(mockRedisService.deleteSession).toHaveBeenCalledWith('inactive-session');
+      expect(mockRedisService.deleteSession).not.toHaveBeenCalledWith('active-session');
+    });
+
+    it('should handle empty sessions list', async () => {
+      mockRedisService.getAllSessions.mockResolvedValue([]);
+
+      await service.cleanupInactiveSessions();
+
+      expect(mockRedisService.deleteSession).not.toHaveBeenCalled();
     });
   });
 });

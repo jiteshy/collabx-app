@@ -55,4 +55,20 @@ export class RedisService {
   async setSessionTTL(sessionId: string, ttl: number): Promise<void> {
     await this.redis.expire(`${this.SESSION_PREFIX}${sessionId}`, ttl);
   }
+
+  async getAllSessions(): Promise<Session[]> {
+    const keys = await this.redis.keys(`${this.SESSION_PREFIX}*`);
+    const sessions: Session[] = [];
+
+    for (const key of keys) {
+      const data = await this.redis.get(key);
+      if (data) {
+        const session = JSON.parse(data);
+        session.users = new Map(Object.entries(session.users));
+        sessions.push(session);
+      }
+    }
+
+    return sessions;
+  }
 }
