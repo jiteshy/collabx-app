@@ -41,7 +41,7 @@ describe('EditorHeader', () => {
 
   it('displays read-only message when in read-only mode', () => {
     render(<EditorHeader {...defaultProps} readOnly={true} />);
-    const message = screen.getByText('In Read-Only Mode');
+    const message = screen.getByText('Read-Only Mode');
     expect(message).toBeDefined();
   });
 

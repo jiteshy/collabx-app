@@ -38,11 +38,11 @@ export function SessionFullDialog({ isOpen, onViewReadOnly }: SessionFullDialogP
         <DialogHeader>
           <DialogTitle>Session is Full</DialogTitle>
           <DialogDescription>
-            This session has reached the maximum number of active collaborators. You can either
+            This session has reached the maximum number of users (5). You can either
             create a new session or view this one in read-only mode.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
+        <DialogFooter className="flex gap-2">
           <Button variant="outline" onClick={handleCreateNewSession}>
             Create New Session
           </Button>

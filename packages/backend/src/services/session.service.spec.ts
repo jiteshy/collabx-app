@@ -4,6 +4,7 @@ import { Redis } from 'ioredis';
 import { RedisService } from './redis.service';
 import { Session } from '@collabx/shared';
 import { DEFAULT_CONTENT } from '@collabx/shared';
+import { ConfigService } from '@nestjs/config';
 
 jest.mock('ioredis', () => {
   const Redis = jest.fn(() => ({
@@ -19,6 +20,7 @@ describe('SessionService', () => {
   let service: SessionService;
   let mockRedis: jest.Mocked<Redis>;
   let mockRedisService: jest.Mocked<RedisService>;
+  let mockConfigService: jest.Mocked<ConfigService>;
 
   beforeEach(async () => {
     mockRedis = {
@@ -37,12 +39,27 @@ describe('SessionService', () => {
       setSessionTTL: jest.fn(),
     } as unknown as jest.Mocked<RedisService>;
 
+    mockConfigService = {
+      get: jest.fn((key: string) => {
+        const config = {
+          MAX_USERS_PER_SESSION: 5,
+          SESSION_TTL: 86400,
+          EMPTY_SESSION_TTL: 3600,
+        };
+        return config[key];
+      }),
+    } as unknown as jest.Mocked<ConfigService>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SessionService,
         {
           provide: RedisService,
           useValue: mockRedisService,
+        },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService,
         },
       ],
     }).compile();
@@ -144,6 +161,31 @@ describe('SessionService', () => {
       await expect(
         service.addUserToSession(sessionId, username),
       ).rejects.toThrow('Username already taken');
+    });
+
+    it('should throw error if session is full', async () => {
+      const sessionId = 'test-session';
+      const username = 'new_user';
+      const existingSession: Session = {
+        id: sessionId,
+        content: '',
+        language: 'javascript',
+        lastActive: Date.now(),
+        users: new Map([
+          ['1', { id: '1', username: 'user1', color: '#000000', lastActive: Date.now(), sessionId }],
+          ['2', { id: '2', username: 'user2', color: '#000000', lastActive: Date.now(), sessionId }],
+          ['3', { id: '3', username: 'user3', color: '#000000', lastActive: Date.now(), sessionId }],
+          ['4', { id: '4', username: 'user4', color: '#000000', lastActive: Date.now(), sessionId }],
+          ['5', { id: '5', username: 'user5', color: '#000000', lastActive: Date.now(), sessionId }],
+        ]),
+        createdAt: Date.now(),
+      };
+
+      mockRedisService.getSession.mockResolvedValue(existingSession);
+
+      await expect(
+        service.addUserToSession(sessionId, username),
+      ).rejects.toThrow('Session is full');
     });
   });
 

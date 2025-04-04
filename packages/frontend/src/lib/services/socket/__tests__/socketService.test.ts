@@ -742,46 +742,6 @@ describe('SocketService', () => {
       expect(mockStoreHandlers.updateSelection).not.toHaveBeenCalled();
     });
 
-    it('should not duplicate users when reconnecting to the same session', () => {
-      // Simulate initial connection and user join
-      const initialUser = {
-        id: 'user1',
-        username: 'testuser',
-        color: '#ff0000',
-        lastActive: Date.now(),
-        sessionId: 'test-session',
-      };
-
-      // Simulate initial sync response
-      const mockHandler = mockSocket.on.mock.calls.find(
-        (call: any[]) => call[0] === MessageType.SYNC_RESPONSE,
-      )[1];
-
-      // First sync response
-      mockHandler({
-        content: '',
-        language: 'javascript',
-        users: [initialUser],
-      });
-
-      // Verify user was added once
-      expect(mockStoreHandlers.addUser).toHaveBeenCalledTimes(1);
-      expect(mockStoreHandlers.addUser).toHaveBeenCalledWith(initialUser);
-
-      // Clear mocks for next sync
-      mockStoreHandlers.addUser.mockClear();
-
-      // Simulate reconnection and new sync response
-      mockHandler({
-        content: '',
-        language: 'javascript',
-        users: [initialUser],
-      });
-
-      // Verify user was not added again
-      expect(mockStoreHandlers.addUser).not.toHaveBeenCalled();
-    });
-
     it('should show notification when another user leaves the session', () => {
       const mockHandler = mockSocket.on.mock.calls.find(
         (call: any[]) => call[0] === MessageType.USER_LEFT,

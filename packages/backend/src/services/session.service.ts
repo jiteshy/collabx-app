@@ -7,14 +7,22 @@ import {
   getRandomColor,
 } from '@collabx/shared';
 import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SessionService {
-  private readonly MAX_USERS_PER_SESSION = 5;
-  private readonly SESSION_TTL = 24 * 60 * 60; // 24 hours in seconds
-  private readonly EMPTY_SESSION_TTL = 1 * 60; // 1 hour in seconds for empty sessions
+  private readonly MAX_USERS_PER_SESSION: number;
+  private readonly SESSION_TTL: number;
+  private readonly EMPTY_SESSION_TTL: number;
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly configService: ConfigService,
+  ) {
+    this.MAX_USERS_PER_SESSION = this.configService.get<number>('MAX_USERS_PER_SESSION', 5);
+    this.SESSION_TTL = this.configService.get<number>('SESSION_TTL', 86400); // 24 hours in seconds
+    this.EMPTY_SESSION_TTL = this.configService.get<number>('EMPTY_SESSION_TTL', 3600); // 1 hour in seconds
+  }
 
   async getOrCreateSession(sessionId: string): Promise<Session> {
     let session = await this.redisService.getSession(sessionId);

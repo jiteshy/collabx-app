@@ -29,6 +29,8 @@ function CollaboratorShimmer() {
 }
 
 export function SessionCard({ sessionId, username, users, copySessionLink }: SessionCardProps) {
+  const isSessionFull = users.length >= 5;
+
   return (
     <div className="bg-zinc-100 w-full h-[220px] overflow-auto scrollbar-hide lg:h-auto rounded-lg p-3 lg:p-4 shadow-sm border border-zinc-200 lg:mb-6 dark:bg-zinc-800 dark:border-zinc-700">
       <h3 className="font-semibold mb-2 text-slate-900 text-base lg:text-lg dark:text-zinc-200">
@@ -61,6 +63,9 @@ export function SessionCard({ sessionId, username, users, copySessionLink }: Ses
           </div>
           <div className="text-xs lg:text-sm text-slate-700 dark:text-zinc-300">
             ({users.length}/5)
+            {isSessionFull && (
+              <span className="ml-1 text-amber-500">(Full)</span>
+            )}
           </div>
         </div>
 

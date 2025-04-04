@@ -29,7 +29,14 @@ export function EditorHeader({
     <div className="pr-4 lg:pr-6 pl-12 h-12 flex items-center justify-between">
       <div className="flex items-center space-x-4">
         {readOnly ? (
-          <div className="text-zinc-600 dark:text-zinc-400 text-xs">In Read-Only Mode</div>
+          <div className="flex items-center space-x-2">
+            <div className="text-zinc-600 dark:text-zinc-400 text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
+              Read-Only Mode
+            </div>
+            <div className="text-zinc-500 dark:text-zinc-500 text-xs">
+              You can view but not edit
+            </div>
+          </div>
         ) : (
           <Select value={language} onValueChange={setLanguage}>
             <SelectTrigger className="w-[140px] lg:w-[180px] !h-8 border-zinc-400 dark:border-zinc-600 dark:text-zinc-300">

@@ -76,13 +76,24 @@ alwaysApply: true
    - Status: Done
    - Changes: Fixed error handling in language change handler and verified all tests are passing
 
+9. [x] Max users in session handling
+   - Limit 5 users per session and have the value configurable
+   - Additional users after limit should be shown a dialog with create new session and enter in read only mode buttons
+   - Create new should route user to a new session
+   - Read only should take the user to current session but in read only mode
+   - Editor should show visual cue for read only mode
+   - Add tests for session full handling
+   - Status: Done
+   - Changes: Max users handling done on backend
+
 ## Phase 3: UI/UX Features
-9. [ ] Theme Management
+9. [x] Theme Management
    - Set dark theme as default
    - Add theme toggle functionality
    - Persist theme preference
    - Add tests for theme management
-   - Status: Pending
+   - Status: Done
+   - Changes: Dark theme set by default and persisted in local storage
 
 10. [ ] Cursor Synchronization
     - Implement cursor position tracking

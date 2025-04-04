@@ -10,10 +10,11 @@ import {
 import { Server, Socket } from 'socket.io';
 import { MessageType, User, ValidationService } from '@collabx/shared';
 import { RateLimiter } from '@collabx/shared';
-import { SessionService } from '@collabx/shared';
+import { SessionService } from '../services/session.service';
 import { ConfigService } from '@nestjs/config';
-import { v4 as uuidv4 } from 'uuid';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 @WebSocketGateway({
   cors: {
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
@@ -37,11 +38,12 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   private rateLimiter: RateLimiter;
-  private sessionService: SessionService;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private sessionService: SessionService
+  ) {
     this.rateLimiter = new RateLimiter();
-    this.sessionService = new SessionService();
 
     // Initialize rate limits
     this.rateLimiter.addLimit(MessageType.JOIN, {
@@ -73,44 +75,54 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    // Create or get session
-    let session = this.sessionService.getSession(sessionId);
-    if (!session) {
-      console.log('Creating new session:', sessionId);
-      session = this.sessionService.createSession(sessionId);
+    try {
+      // Get or create session
+      const session = await this.sessionService.getOrCreateSession(sessionId);
+      
+      client.join(sessionId);
+      console.log('Client joined session:', sessionId);
+
+      // Send initial sync response
+      const response = {
+        content: session.content,
+        language: session.language,
+        users: Array.from(session.users.values()),
+      };
+      console.log('Sending initial sync response:', response);
+      client.emit(MessageType.SYNC_RESPONSE, response);
+    } catch (error) {
+      console.error('Error handling connection:', error);
+      client.emit(MessageType.ERROR, { message: 'Failed to join session' });
+      client.disconnect();
     }
-
-    client.join(sessionId);
-    console.log('Client joined session:', sessionId);
-
-    // Send initial sync response
-    const response = {
-      content: session.content,
-      language: session.language,
-      users: Array.from(session.users.values()),
-    };
-    console.log('Sending initial sync response:', response);
-    client.emit(MessageType.SYNC_RESPONSE, response);
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     const sessionId = client.handshake.query.sessionId as string;
     const userId = client.data.userId;
 
-    if (userId) {
-      const session = this.sessionService.getSession(sessionId);
-      if (session) {
+    if (userId && sessionId) {
+      try {
+        // Get the session and user first
+        const session = await this.sessionService.getOrCreateSession(sessionId);
         const user = session.users.get(userId);
+
+        // Remove the user from the session
+        await this.sessionService.removeUserFromSession(sessionId, userId);
+
+        // Emit the USER_LEFT event if we found the user
         if (user) {
-          this.sessionService.removeUserFromSession(sessionId, userId);
-          client.to(sessionId).emit(MessageType.USER_LEFT, { user });
+          console.log('Broadcasting USER_LEFT event for user:', user);
+          this.server.to(sessionId).emit(MessageType.USER_LEFT, { user });
         }
+      } catch (error) {
+        console.error('Error handling disconnect:', error);
       }
     }
   }
 
   @SubscribeMessage(MessageType.JOIN)
-  handleJoin(
+  async handleJoin(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { username: string },
     callback?: (response: { user: User }) => void,
@@ -154,42 +166,27 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    // Create user
-    const user: User = {
-      id: client.id,
-      username: payload.username,
-      color: this.generateUserColor(),
-      lastActive: Date.now(),
-      sessionId,
-    };
-    console.log('Created user:', user);
+    try {
+      // Add user to session
+      const user = await this.sessionService.addUserToSession(sessionId, payload.username);
+      
+      // Store user ID in socket data
+      client.data.userId = user.id;
+      console.log('Stored user ID in socket data:', client.data);
 
-    // Add user to session
-    const error = this.sessionService.addUserToSession(sessionId, user);
-    if (error) {
-      console.error('Error adding user to session:', error);
-      client.emit(MessageType.ERROR, error);
-      return;
-    }
+      // Send JOIN response to the client
+      console.log('Sending JOIN response to client:', { user });
+      client.emit(MessageType.JOIN, { user });
+      if (typeof callback === 'function') {
+        callback({ user });
+      }
 
-    // Store user ID in socket data
-    client.data.userId = user.id;
-    console.log('Stored user ID in socket data:', client.data);
+      // Broadcast user joined to all clients in the session
+      console.log('Broadcasting USER_JOINED event to session:', sessionId);
+      client.to(sessionId).emit(MessageType.USER_JOINED, { user });
 
-    // Send JOIN response to the client
-    console.log('Sending JOIN response to client:', { user });
-    client.emit(MessageType.JOIN, { user });
-    if (typeof callback === 'function') {
-      callback({ user });
-    }
-
-    // Broadcast user joined to all clients in the session
-    console.log('Broadcasting USER_JOINED event to session:', sessionId);
-    client.to(sessionId).emit(MessageType.USER_JOINED, { user });
-
-    // Send updated user list to all clients
-    const session = this.sessionService.getSession(sessionId);
-    if (session) {
+      // Send updated user list to all clients
+      const session = await this.sessionService.getOrCreateSession(sessionId);
       console.log('Sending SYNC_RESPONSE to all clients in session:', {
         content: session.content,
         language: session.language,
@@ -200,11 +197,17 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
         language: session.language,
         users: Array.from(session.users.values()),
       });
+    } catch (error) {
+      console.error('Error handling join:', error);
+      client.emit(MessageType.ERROR, {
+        type: error.message === 'Session is full' ? 'SESSION_FULL' : 'JOIN_ERROR',
+        message: error.message,
+      });
     }
   }
 
   @SubscribeMessage(MessageType.CONTENT_CHANGE)
-  handleContentChange(
+  async handleContentChange(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { content: string },
   ) {
@@ -231,18 +234,22 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    this.sessionService.updateSessionContent(sessionId, payload.content);
-    const user = this.getUserFromSocket(client);
-    if (user) {
-      client.to(sessionId).emit(MessageType.CONTENT_CHANGE, {
-        content: payload.content,
-        user,
-      });
+    try {
+      await this.sessionService.updateSessionContent(sessionId, payload.content);
+      const user = await this.getUserFromSocket(client);
+      if (user) {
+        client.to(sessionId).emit(MessageType.CONTENT_CHANGE, {
+          content: payload.content,
+          user,
+        });
+      }
+    } catch (error) {
+      console.error('Error handling content change:', error);
     }
   }
 
   @SubscribeMessage(MessageType.LANGUAGE_CHANGE)
-  handleLanguageChange(
+  async handleLanguageChange(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { language: string },
   ) {
@@ -257,18 +264,22 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    this.sessionService.updateSessionLanguage(sessionId, payload.language);
-    const user = this.getUserFromSocket(client);
-    if (user) {
-      client.to(sessionId).emit(MessageType.LANGUAGE_CHANGE, {
-        language: payload.language,
-        user,
-      });
+    try {
+      await this.sessionService.updateSessionLanguage(sessionId, payload.language);
+      const user = await this.getUserFromSocket(client);
+      if (user) {
+        client.to(sessionId).emit(MessageType.LANGUAGE_CHANGE, {
+          language: payload.language,
+          user,
+        });
+      }
+    } catch (error) {
+      console.error('Error handling language change:', error);
     }
   }
 
   @SubscribeMessage(MessageType.CURSOR_MOVE)
-  handleCursorMove(
+  async handleCursorMove(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { position: { top: number; left: number } },
   ) {
@@ -295,17 +306,21 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const user = this.getUserFromSocket(client);
-    if (user) {
-      client.to(sessionId).emit(MessageType.CURSOR_MOVE, {
-        position: payload.position,
-        user,
-      });
+    try {
+      const user = await this.getUserFromSocket(client);
+      if (user) {
+        client.to(sessionId).emit(MessageType.CURSOR_MOVE, {
+          position: payload.position,
+          user,
+        });
+      }
+    } catch (error) {
+      console.error('Error handling cursor move:', error);
     }
   }
 
   @SubscribeMessage(MessageType.SELECTION_CHANGE)
-  handleSelectionChange(
+  async handleSelectionChange(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { selection: { start: number; end: number } },
   ) {
@@ -320,23 +335,28 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const user = this.getUserFromSocket(client);
-    if (user) {
-      client.to(sessionId).emit(MessageType.SELECTION_CHANGE, {
-        selection: payload.selection,
-        user,
-      });
+    try {
+      const user = await this.getUserFromSocket(client);
+      if (user) {
+        client.to(sessionId).emit(MessageType.SELECTION_CHANGE, {
+          selection: payload.selection,
+          user,
+        });
+      }
+    } catch (error) {
+      console.error('Error handling selection change:', error);
     }
   }
 
   @SubscribeMessage(MessageType.SYNC_REQUEST)
-  handleSyncRequest(@ConnectedSocket() client: Socket) {
+  async handleSyncRequest(@ConnectedSocket() client: Socket) {
     console.log('Sync request received from client:', client.id);
 
     const sessionId = client.handshake.query.sessionId as string;
-    const session = this.sessionService.getSession(sessionId);
+    if (!sessionId) return;
 
-    if (session) {
+    try {
+      const session = await this.sessionService.getOrCreateSession(sessionId);
       console.log(
         'Sending sync response with users:',
         Array.from(session.users.values()),
@@ -346,16 +366,23 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
         language: session.language,
         users: Array.from(session.users.values()),
       });
-    } else {
-      console.log('No session found for sync request');
+    } catch (error) {
+      console.error('Error handling sync request:', error);
     }
   }
 
-  private getUserFromSocket(client: Socket) {
+  private async getUserFromSocket(client: Socket) {
     const sessionId = client.handshake.query.sessionId as string;
     const userId = client.data.userId;
-    const session = this.sessionService.getSession(sessionId);
-    return session?.users.get(userId);
+    if (!sessionId || !userId) return null;
+    
+    try {
+      const session = await this.sessionService.getOrCreateSession(sessionId);
+      return session.users.get(userId);
+    } catch (error) {
+      console.error('Error getting user from socket:', error);
+      return null;
+    }
   }
 
   private generateUserColor(): string {
