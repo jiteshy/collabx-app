@@ -14,6 +14,10 @@ import { SessionService } from '../services/session.service';
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 
+/**
+ * WebSocket gateway for handling real-time collaborative editing functionality.
+ * Manages user connections, session state, and event handling for the editor.
+ */
 @Injectable()
 @WebSocketGateway({
   cors: {
@@ -53,6 +57,11 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  /**
+   * Handles new WebSocket connections.
+   * Validates session ID and initializes user session.
+   * @param client - The WebSocket client connection
+   */
   async handleConnection(client: Socket) {
     console.log('Client connected:', client.id);
     console.log('Client handshake:', client.handshake);
@@ -97,6 +106,11 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Handles WebSocket disconnections.
+   * Removes user from session and notifies other users.
+   * @param client - The WebSocket client connection
+   */
   async handleDisconnect(client: Socket) {
     const sessionId = client.handshake.query.sessionId as string;
     const userId = client.data.userId;
@@ -121,6 +135,13 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Handles user join requests.
+   * Validates request, checks rate limits, and adds user to session.
+   * @param client - The WebSocket client connection
+   * @param payload - Join request payload containing username
+   * @param callback - Optional callback function for response
+   */
   @SubscribeMessage(MessageType.JOIN)
   async handleJoin(
     @ConnectedSocket() client: Socket,
@@ -206,6 +227,12 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Handles editor content changes.
+   * Broadcasts changes to all users in the session.
+   * @param client - The WebSocket client connection
+   * @param payload - Content change payload
+   */
   @SubscribeMessage(MessageType.CONTENT_CHANGE)
   async handleContentChange(
     @ConnectedSocket() client: Socket,
@@ -248,6 +275,12 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Handles editor language changes.
+   * Broadcasts language changes to all users in the session.
+   * @param client - The WebSocket client connection
+   * @param payload - Language change payload
+   */
   @SubscribeMessage(MessageType.LANGUAGE_CHANGE)
   async handleLanguageChange(
     @ConnectedSocket() client: Socket,
@@ -278,6 +311,12 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Handles cursor position updates.
+   * Broadcasts cursor position to other users in the session.
+   * @param client - The WebSocket client connection
+   * @param payload - Cursor position payload
+   */
   @SubscribeMessage(MessageType.CURSOR_MOVE)
   async handleCursorMove(
     @ConnectedSocket() client: Socket,
@@ -319,6 +358,12 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Handles text selection updates.
+   * Broadcasts selection changes to other users in the session.
+   * @param client - The WebSocket client connection
+   * @param payload - Selection change payload
+   */
   @SubscribeMessage(MessageType.SELECTION_CHANGE)
   async handleSelectionChange(
     @ConnectedSocket() client: Socket,
@@ -348,6 +393,11 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Handles session state sync requests.
+   * Sends current session state to requesting client.
+   * @param client - The WebSocket client connection
+   */
   @SubscribeMessage(MessageType.SYNC_REQUEST)
   async handleSyncRequest(@ConnectedSocket() client: Socket) {
     console.log('Sync request received from client:', client.id);
@@ -371,6 +421,12 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Handles user typing status updates.
+   * Broadcasts typing status to other users in the session.
+   * @param client - The WebSocket client connection
+   * @param payload - Typing status payload
+   */
   @SubscribeMessage(MessageType.TYPING_STATUS)
   async handleTypingStatus(
     @ConnectedSocket() client: Socket,
@@ -400,6 +456,11 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Retrieves user information from socket connection.
+   * @param client - The WebSocket client connection
+   * @returns User object or null if not found
+   */
   private async getUserFromSocket(client: Socket) {
     const sessionId = client.handshake.query.sessionId as string;
     const userId = client.data.userId;
@@ -412,21 +473,5 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.error('Error getting user from socket:', error);
       return null;
     }
-  }
-
-  private generateUserColor(): string {
-    const colors = [
-      '#FF6B6B',
-      '#4ECDC4',
-      '#45B7D1',
-      '#96CEB4',
-      '#FFEEAD',
-      '#D4A5A5',
-      '#9B59B6',
-      '#3498DB',
-      '#E67E22',
-      '#1ABC9C',
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
   }
 }

@@ -17,6 +17,10 @@ const DEFAULT_ERROR_RECOVERY_OPTIONS: ErrorRecoveryOptions = {
   maxRetryDelay: 5000,
 };
 
+/**
+ * Service for managing WebSocket connections and handling real-time communication.
+ * Provides methods for connecting, disconnecting, and sending/receiving messages.
+ */
 export class SocketService {
   private socket: ReturnType<typeof Manager.prototype.socket> | null = null;
   private manager: ReturnType<typeof Manager> | null = null;
@@ -29,6 +33,13 @@ export class SocketService {
     isDisconnecting: false,
   };
 
+  /**
+   * Creates a new SocketService instance.
+   * @param sessionId - Unique identifier for the collaborative session
+   * @param username - Display name of the current user
+   * @param onError - Callback function for handling connection errors
+   * @param storeHandlers - Object containing handlers for updating application state
+   */
   constructor(
     private sessionId: string,
     private username: string,
@@ -37,6 +48,10 @@ export class SocketService {
     private errorRecoveryOptions: ErrorRecoveryOptions = DEFAULT_ERROR_RECOVERY_OPTIONS,
   ) {}
 
+  /**
+   * Establishes WebSocket connection with the server.
+   * Configures connection options and sets up event listeners.
+   */
   connect(): void {
     if (
       this.socket?.connected ||
@@ -82,6 +97,58 @@ export class SocketService {
     }
   }
 
+  /**
+   * Closes the WebSocket connection and cleans up resources.
+   */
+  disconnect(): void {
+    if (this.connectionState.isDisconnecting) {
+      console.log('Already disconnecting, skipping');
+      return;
+    }
+
+    this.connectionState.isDisconnecting = true;
+    console.log('Disconnecting socket...');
+
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    if (this.manager) {
+      this.manager.removeAllListeners();
+      this.manager = null;
+    }
+
+    this.connectionState = {
+      ...this.connectionState,
+      reconnectAttempts: 0,
+      isConnecting: false,
+      isDisconnecting: false,
+    };
+  }
+
+  /**
+   * Sends a message to the server.
+   * @param type - Type of the message (event name)
+   * @param payload - Data to be sent with the message
+   */
+  sendMessage<T extends MessageType>(type: T, payload: SocketPayloads[T]): void {
+    if (!this.socket?.connected) {
+      console.warn('Socket not connected, message not sent');
+      return;
+    }
+    this.socket.emit(type, payload);
+  }
+
+  /**
+   * Sets up event listeners for various WebSocket events.
+   * Handles connection, disconnection, and message events.
+   */
   private setupEventListeners(): void {
     if (!this.socket) return;
 
@@ -134,46 +201,10 @@ export class SocketService {
     });
   }
 
-  disconnect(): void {
-    if (this.connectionState.isDisconnecting) {
-      console.log('Already disconnecting, skipping');
-      return;
-    }
-
-    this.connectionState.isDisconnecting = true;
-    console.log('Disconnecting socket...');
-
-    if (this.reconnectTimeout) {
-      clearTimeout(this.reconnectTimeout);
-      this.reconnectTimeout = null;
-    }
-
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-    }
-
-    if (this.manager) {
-      this.manager.removeAllListeners();
-      this.manager = null;
-    }
-
-    this.connectionState = {
-      ...this.connectionState,
-      reconnectAttempts: 0,
-      isConnecting: false,
-      isDisconnecting: false,
-    };
-  }
-
-  sendMessage<T extends MessageType>(type: T, payload: SocketPayloads[T]): void {
-    if (!this.socket?.connected) {
-      console.warn('Socket not connected, message not sent');
-      return;
-    }
-    this.socket.emit(type, payload);
-  }
-
+  /**
+   * Handles successful connection to the WebSocket server.
+   * Logs connection details and updates connection state.
+   */
   private handleConnect(): void {
     console.log('handleConnect called');
     this.connectionState.isConnecting = false;
@@ -202,6 +233,25 @@ export class SocketService {
     }
   }
 
+  /**
+   * Handles WebSocket connection errors.
+   * Logs error details and calls error callback.
+   * @param error - Error object containing connection failure details
+   */
+  private handleConnectError(error: Error): void {
+    console.error('Socket.IO connection error:', {
+      message: error.message,
+      stack: error.stack,
+      url: process.env.NEXT_PUBLIC_WS_URL,
+      sessionId: this.sessionId,
+    });
+    this.handleConnectionError(error);
+  }
+
+  /**
+   * Handles disconnection from the WebSocket server.
+   * Logs disconnection details and updates connection state.
+   */
   private handleDisconnect(): void {
     this.connectionState.isConnecting = false;
 
@@ -221,16 +271,11 @@ export class SocketService {
     }
   }
 
-  private handleConnectError(error: Error): void {
-    console.error('Socket.IO connection error:', {
-      message: error.message,
-      stack: error.stack,
-      url: process.env.NEXT_PUBLIC_WS_URL,
-      sessionId: this.sessionId,
-    });
-    this.handleConnectionError(error);
-  }
-
+  /**
+   * Handles general connection errors.
+   * Logs error details and calls error callback.
+   * @param error - Error object containing connection failure details
+   */
   private handleConnectionError(error: Error): void {
     const socketError: SocketError = {
       type: 'CONNECTION_ERROR',

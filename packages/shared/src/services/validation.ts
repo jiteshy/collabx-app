@@ -1,6 +1,16 @@
 import { MessageType, SocketError, SocketErrorType } from '../types';
 
+/**
+ * Service for validating WebSocket messages and session data.
+ * Provides methods for validating session IDs, session links, and event payloads.
+ */
 export class ValidationService {
+  /**
+   * Validates a session ID format.
+   * Session IDs must be alphanumeric strings.
+   * @param sessionId - The session ID to validate
+   * @returns SocketError object if validation fails, null otherwise
+   */
   static validateSessionId(sessionId: string): SocketError | null {
     if (!sessionId || typeof sessionId !== 'string') {
       return {
@@ -21,6 +31,12 @@ export class ValidationService {
     return null;
   }
 
+  /**
+   * Validates a session link format.
+   * Session links must be valid URLs with alphanumeric session IDs.
+   * @param sessionLink - The session link to validate
+   * @returns SocketError object if validation fails, null otherwise
+   */
   static validateSessionLink(sessionLink: string): SocketError | null {
     if (!sessionLink || typeof sessionLink !== 'string') {
       return {
@@ -57,6 +73,13 @@ export class ValidationService {
     return null;
   }
 
+  /**
+   * Validates event payload based on message type.
+   * Ensures payload structure matches expected format for each event type.
+   * @param type - The type of message being validated
+   * @param payload - The payload to validate
+   * @returns SocketError object if validation fails, null otherwise
+   */
   static validateEventPayload(type: MessageType, payload: unknown): SocketError | null {
     switch (type) {
       case MessageType.JOIN:

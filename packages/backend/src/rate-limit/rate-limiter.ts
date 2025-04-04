@@ -1,13 +1,24 @@
 import { Socket } from 'socket.io';
 
+/**
+ * Configuration for rate limiting a specific event type.
+ */
 interface RateLimitConfig {
+  /** Time window in milliseconds */
   windowMs: number;
+  /** Maximum number of requests allowed in the window */
   max: number;
+  /** Error message to display when limit is exceeded */
   message: string;
 }
 
+/**
+ * Current state of rate limiting for a client.
+ */
 interface RateLimitInfo {
+  /** Current request count */
   count: number;
+  /** Timestamp when the rate limit will reset */
   resetTime: number;
 }
 
