@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { MonacoEditor } from '@/components/monaco-editor';
 import { useEditorStore, useUserStore } from '@/lib/stores';
-import { getRandomUsername, MessageType } from '@collabx/shared';
+import { getRandomUsername, MessageType, ValidationService } from '@collabx/shared';
 import { toast } from 'sonner';
 import { SessionCard } from '@/components/session-card';
 import { Header } from '@/components/nav';
@@ -13,6 +13,7 @@ import { EditorHeader } from '@/components/editor-header';
 import { Footer } from '@/components/Footer';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { SessionFullDialog } from '@/components/session-full-dialog';
+import { InvalidSessionDialog } from '@/components/invalid-session-dialog';
 import { useTheme } from 'next-themes';
 
 export default function SessionPage() {
@@ -22,6 +23,7 @@ export default function SessionPage() {
   const { language, setLanguage } = useEditorStore();
   const [readOnly, setReadOnly] = useState(false);
   const users = useUserStore((state) => state.users);
+  const [isInvalidSession, setIsInvalidSession] = useState(false);
   const { sendMessage, isSessionFull, setIsSessionFull } = useWebSocket(sessionId, username || '');
   const { setTheme, theme } = useTheme();
   const typingUsers = useUserStore((state) => state.typingUsers);
@@ -29,7 +31,13 @@ export default function SessionPage() {
   useEffect(() => {
     const randomUsername = getRandomUsername();
     setUsername(randomUsername);
-  }, []);
+
+    // Validate session ID before establishing connection
+    const validationError = ValidationService.validateSessionId(sessionId);
+    if (validationError) {
+      setIsInvalidSession(true);
+    }
+  }, [sessionId]);
 
   const copySessionLink = useCallback(() => {
     const url = `${window.location.origin}/${sessionId}`;
@@ -129,6 +137,7 @@ export default function SessionPage() {
 
       <Footer />
       <SessionFullDialog isOpen={isSessionFull} onViewReadOnly={handleViewReadOnly} />
+      <InvalidSessionDialog isOpen={isInvalidSession} onOpenChange={setIsInvalidSession} />
     </div>
   );
 }

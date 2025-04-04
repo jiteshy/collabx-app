@@ -18,14 +18,14 @@ interface InvalidSessionDialogProps {
 export function InvalidSessionDialog({ isOpen, onOpenChange }: InvalidSessionDialogProps) {
   const router = useRouter();
 
-  const handleCreateNewSession = () => {
-    // Generate a valid session ID
+  const handleCreateNewSession = (): void => {
+    onOpenChange(false);
     const newSessionId = ValidationService.generateValidSessionId(8);
     router.push(`/${newSessionId}`);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleCreateNewSession}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Invalid Session</DialogTitle>

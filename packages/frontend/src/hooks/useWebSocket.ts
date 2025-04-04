@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { SocketService } from '@/lib/services/socket';
 import { useEditorStore } from '@/lib/stores/editorStore';
 import { useUserStore } from '@/lib/stores/userStore';
-import { MessageType, UserCursor, UserSelection, UserTypingStatus } from '@collabx/shared';
+import { MessageType, UserCursor, UserSelection, UserTypingStatus, ValidationService } from '@collabx/shared';
 import { SocketPayloads } from '@/lib/services/socket/types';
 
 export const useWebSocket = (sessionId: string, username: string) => {
@@ -77,6 +77,13 @@ export const useWebSocket = (sessionId: string, username: string) => {
   useEffect(() => {
     if (!sessionId) {
       console.warn('Missing sessionId for socket connection');
+      return;
+    }
+
+    // Validate session ID before establishing connection
+    const validationError = ValidationService.validateSessionId(sessionId);
+    if (validationError) {
+      console.warn('Invalid session ID:', validationError);
       return;
     }
 
