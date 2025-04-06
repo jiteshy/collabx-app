@@ -15,7 +15,7 @@ export function Footer() {
               key={index}
               className={cn(
                 'flex items-center',
-                index < arr.length - 1 && 'border-r border-zinc-400 pr-1',
+                index < arr.length - 1 && 'border-r border-zinc-500 pr-1',
                 index > 0 && 'pl-1',
               )}
             >

@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CollabX Frontend
+
+The frontend package of CollabX, built with Next.js and TypeScript. Provides a real-time collaborative code editing experience with Monaco Editor.
+
+## Features
+
+- **Real-time Code Editing**: Powered by Monaco Editor
+- **User Presence**: Display active users in the session
+- **Cursor Tracking**: Show other users' cursor positions
+- **Language Support**: Multiple programming language support
+- **Dark Mode**: Built-in theme switching
+- **Responsive Design**: Works on all screen sizes
+- **Keyboard Shortcuts**: Quick access to common actions
+
+## Tech Stack
+
+- **Framework**: Next.js 14
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Editor**: Monaco Editor
+- **State Management**: Zustand
+- **WebSocket**: Socket.IO Client
+- **UI Components**: Custom components with Tailwind CSS
+
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── app/              # Next.js app directory
+│   ├── components/       # Reusable UI components
+│   ├── hooks/           # Custom React hooks
+│   ├── lib/             # Utility functions and services
+│   └── stores/          # Zustand state stores
+├── public/              # Static assets
+└── README.md
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js (v18 or higher)
+- npm or yarn
+
+### Installation
+
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Start the development server:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The application will be available at http://localhost:3000
 
-## Learn More
+## Development
 
-To learn more about Next.js, take a look at the following resources:
+### Available Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Key Components
 
-## Deploy on Vercel
+- `MonacoEditor`: Main code editor component
+- `EditorHeader`: Session information and controls
+- `UserList`: Display active users
+- `SessionCard`: Session sharing and management
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### State Management
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The application uses Zustand for state management with the following stores:
+- `editorStore`: Editor content and settings
+- `userStore`: User presence and cursor tracking
+
+## Testing
+
+```bash
+# Run unit tests
+npm run test
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+## Building for Production
+
+```bash
+# Build the application
+npm run build
+
+# Start production server
+npm run start
+```
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Run tests and linting
+4. Submit a pull request
+
+## License
+
+This package is part of the CollabX project and is licensed under the MIT License.

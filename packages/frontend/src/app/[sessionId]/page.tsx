@@ -90,7 +90,7 @@ export default function SessionPage() {
 
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto scrollbar-hide">
-            <div className="p-4 lg:p-6 lg:pt-0 w-full md:w-4/5 m-auto lg:w-full">
+            <div className="p-4 lg:pt-0 w-full md:w-4/5 m-auto lg:w-full">
               <div className="flex md:grid flex-col md:grid-cols-2 lg:flex lg:flex-col gap-4 lg:h-[calc(100vh-140px)]">
                 <HeroSection />
 
@@ -106,10 +106,10 @@ export default function SessionPage() {
         </div>
 
         {/* Right Column */}
-        <div className="relative lg:w-2/3 lg:pt-4 lg:pb-12 lg:pr-6 pb-4 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 lg:from-slate-700 lg:via-slate-700 lg:to-slate-700 flex min-h-[500px] lg:min-h-screen">
+        <div className="relative lg:w-2/3 lg:pt-4 lg:pb-10 lg:pr-4 pb-4 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 lg:from-slate-700 lg:via-slate-700 lg:to-slate-700 flex min-h-[500px] lg:min-h-screen">
           {/* Editor Section */}
           <div className="flex-1 px-4 lg:px-0">
-            <div className="bg-zinc-100 w-full md:w-4/5 m-auto lg:w-full border rounded-2xl shadow-2xl overflow-hidden h-full flex flex-col dark:bg-zinc-800">
+            <div className="bg-zinc-100 w-full md:w-4/5 m-auto lg:w-full border rounded-lg shadow-2xl overflow-hidden h-full flex flex-col dark:bg-zinc-800">
               <EditorHeader
                 language={language}
                 setLanguage={(newLanguage) => {

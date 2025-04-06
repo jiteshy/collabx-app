@@ -27,7 +27,7 @@ export function ThemeToggle() {
 
   return (
     <Toggle
-      className="cursor-pointer"
+      className="cursor-pointer rounded-lg"
       variant="outline"
       size="lg"
       pressed={theme === 'dark'}

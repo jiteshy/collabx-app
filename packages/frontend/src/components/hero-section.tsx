@@ -1,6 +1,6 @@
 export function HeroSection() {
   return (
-    <div className="text-center md:text-left">
+    <div className="text-center md:text-left lg:pl-2 lg:pt-5">
       <h1 className="text-3xl text-white mb-3 lg:mb-4">
         <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-400">
           No-Nonsense
