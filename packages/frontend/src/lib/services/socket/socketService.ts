@@ -58,12 +58,10 @@ export class SocketService {
       this.connectionState.isConnecting ||
       this.connectionState.isDisconnecting
     ) {
-      console.log('Socket already connected, connecting, or disconnecting, skipping connect');
       return;
     }
 
     this.connectionState.isConnecting = true;
-    console.log('Attempting to connect socket...');
 
     try {
       const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
@@ -88,11 +86,8 @@ export class SocketService {
       });
 
       this.socket = this.manager.socket('/');
-      console.log('Socket manager created with URL:', wsUrl, 'Session ID:', this.sessionId);
-      console.log('Socket instance created:', this.socket.id);
       this.setupEventListeners();
     } catch (error) {
-      console.error('Error creating socket connection:', error);
       this.handleConnectionError(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
@@ -102,12 +97,10 @@ export class SocketService {
    */
   disconnect(): void {
     if (this.connectionState.isDisconnecting) {
-      console.log('Already disconnecting, skipping');
       return;
     }
 
     this.connectionState.isDisconnecting = true;
-    console.log('Disconnecting socket...');
 
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
@@ -139,7 +132,6 @@ export class SocketService {
    */
   sendMessage<T extends MessageType>(type: T, payload: SocketPayloads[T]): void {
     if (!this.socket?.connected) {
-      console.warn('Socket not connected, message not sent');
       return;
     }
     this.socket.emit(type, payload);
@@ -151,8 +143,6 @@ export class SocketService {
    */
   private setupEventListeners(): void {
     if (!this.socket) return;
-
-    console.log('Setting up socket event listeners...');
 
     const events: SocketEvents = {
       [MessageType.JOIN]: this.handleJoin.bind(this),
@@ -173,29 +163,23 @@ export class SocketService {
     };
 
     this.socket.on('connect', () => {
-      console.log('Socket connect event fired');
       this.handleConnect();
     });
 
     this.socket.on('disconnect', () => {
-      console.log('Socket disconnect event fired');
       this.handleDisconnect();
     });
 
     this.socket.on('connect_error', (error: Error) => {
-      console.log('Socket connect_error event fired:', error);
       this.handleConnectError(error);
     });
 
     this.socket.on('error', (error: Error) => {
-      console.error('Socket error event fired:', error);
       this.handleError(error);
     });
 
     Object.entries(events).forEach(([event, handler]) => {
-      console.log(`Setting up listener for event: ${event}`);
       this.socket?.on(event, (data: unknown) => {
-        console.log(`Received ${event} event:`, data);
         handler(data as never);
       });
     });
@@ -206,29 +190,23 @@ export class SocketService {
    * Logs connection details and updates connection state.
    */
   private handleConnect(): void {
-    console.log('handleConnect called');
     this.connectionState.isConnecting = false;
     this.connectionState.reconnectAttempts = 0;
     this.connectionState.lastSuccessfulConnection = new Date();
     this.connectionState.lastError = undefined;
 
     if (this.connectionState.isInitialConnection) {
-      console.log('Sending initial JOIN message with username:', this.username);
       if (!this.socket?.connected) {
-        console.error('Socket not connected when trying to send JOIN message');
         return;
       }
       const joinPayload = { username: this.username };
-      console.log('Emitting JOIN event with payload:', joinPayload);
       this.socket.emit(MessageType.JOIN, joinPayload, (response: unknown) => {
-        console.log('JOIN event acknowledgment received:', response);
         if (response && typeof response === 'object' && 'user' in response) {
           this.handleJoin(response as { user: User });
         }
       });
       this.connectionState.isInitialConnection = false;
     } else {
-      console.log('Sending SYNC_REQUEST after reconnection');
       this.socket?.emit(MessageType.SYNC_REQUEST);
     }
   }
@@ -239,12 +217,6 @@ export class SocketService {
    * @param error - Error object containing connection failure details
    */
   private handleConnectError(error: Error): void {
-    console.error('Socket.IO connection error:', {
-      message: error.message,
-      stack: error.stack,
-      url: process.env.NEXT_PUBLIC_WS_URL,
-      sessionId: this.sessionId,
-    });
     this.handleConnectionError(error);
   }
 
@@ -286,12 +258,6 @@ export class SocketService {
     this.connectionState.lastError = socketError;
     this.connectionState.isConnecting = false;
 
-    console.error('Socket connection error:', {
-      error: socketError,
-      connectionState: this.connectionState,
-      timestamp: new Date().toISOString(),
-    });
-
     this.onError(`Connection error: ${error.message}`);
     this.attemptErrorRecovery();
   }
@@ -303,9 +269,6 @@ export class SocketService {
     }
 
     const delay = this.calculateRetryDelay();
-    console.log(
-      `Attempting recovery in ${delay}ms (attempt ${this.connectionState.reconnectAttempts + 1}/${this.errorRecoveryOptions.maxRetries})`,
-    );
 
     this.reconnectTimeout = setTimeout(() => {
       this.connectionState.reconnectAttempts++;
@@ -329,12 +292,6 @@ export class SocketService {
       details: this.connectionState.lastError,
     };
 
-    console.error('Max retries exceeded:', {
-      error,
-      connectionState: this.connectionState,
-      timestamp: new Date().toISOString(),
-    });
-
     this.onError(
       'Failed to establish connection after multiple attempts. Please refresh the page.',
     );
@@ -342,7 +299,6 @@ export class SocketService {
   }
 
   private handleError(error: any): void {
-    console.error('Socket error:', error);
     this.connectionState.lastError = error;
     this.connectionState.isConnecting = false;
 
@@ -353,12 +309,6 @@ export class SocketService {
     };
 
     this.connectionState.lastError = socketError;
-
-    console.error('Socket connection error:', {
-      error: socketError,
-      connectionState: this.connectionState,
-      timestamp: new Date().toISOString(),
-    });
 
     if (error.type === 'SESSION_FULL') {
       this.storeHandlers.onSessionFull();
@@ -504,15 +454,10 @@ export class SocketService {
   }
 
   private handleJoin(payload: SocketPayloads[MessageType.JOIN]): void {
-    console.log('Received JOIN response:', payload);
     if (payload?.user && payload.user.id && payload.user.username) {
-      console.log('Adding user to store:', payload.user);
       this.storeHandlers.addUser(payload.user);
       NotificationService.showUserJoined(payload.user.username, this.username);
       this.connectionState.isInitialConnection = false;
-      console.log('Updated connection state:', this.connectionState);
-    } else {
-      console.warn('Received JOIN response without valid user object:', payload);
     }
   }
 

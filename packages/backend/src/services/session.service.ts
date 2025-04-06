@@ -85,18 +85,20 @@ export class SessionService {
   ): Promise<void> {
     const session = await this.redisService.getSession(sessionId);
     if (session) {
-      session.users.delete(userId);
-      session.lastActive = Date.now();
+      const user = session.users.get(userId);
+      if (user) {
+        session.users.delete(userId);
+        session.lastActive = Date.now();
 
-      if (session.users.size === 0) {
-        // If no users left, set shorter TTL for empty session
-        await this.redisService.setSessionTTL(
-          sessionId,
-          this.EMPTY_SESSION_TTL,
-        );
+        if (session.users.size === 0) {
+          await this.redisService.setSessionTTL(
+            sessionId,
+            this.EMPTY_SESSION_TTL,
+          );
+        }
+
+        await this.redisService.setSession(sessionId, session);
       }
-
-      await this.redisService.setSession(sessionId, session);
     }
   }
 

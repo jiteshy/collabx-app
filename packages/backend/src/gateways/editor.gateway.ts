@@ -63,41 +63,29 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param client - The WebSocket client connection
    */
   async handleConnection(client: Socket) {
-    console.log('Client connected:', client.id);
-    console.log('Client handshake:', client.handshake);
-
     const sessionId = client.handshake.query.sessionId as string;
     if (!sessionId) {
-      console.log('No session ID provided');
       client.emit(MessageType.ERROR, { message: 'Session ID is required' });
       client.disconnect();
       return;
     }
 
-    console.log('Session ID received:', sessionId);
-
     const validationError = ValidationService.validateSessionId(sessionId);
     if (validationError) {
-      console.log('Session ID validation error:', validationError);
       client.emit(MessageType.ERROR, validationError);
       client.disconnect();
       return;
     }
 
     try {
-      // Get or create session
       const session = await this.sessionService.getOrCreateSession(sessionId);
-      
       client.join(sessionId);
-      console.log('Client joined session:', sessionId);
 
-      // Send initial sync response
       const response = {
         content: session.content,
         language: session.language,
         users: Array.from(session.users.values()),
       };
-      console.log('Sending initial sync response:', response);
       client.emit(MessageType.SYNC_RESPONSE, response);
     } catch (error) {
       console.error('Error handling connection:', error);
@@ -117,17 +105,20 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (userId && sessionId) {
       try {
-        // Get the session and user first
         const session = await this.sessionService.getOrCreateSession(sessionId);
         const user = session.users.get(userId);
 
-        // Remove the user from the session
-        await this.sessionService.removeUserFromSession(sessionId, userId);
-
-        // Emit the USER_LEFT event if we found the user
         if (user) {
-          console.log('Broadcasting USER_LEFT event for user:', user);
+          await this.sessionService.removeUserFromSession(sessionId, userId);
           this.server.to(sessionId).emit(MessageType.USER_LEFT, { user });
+          
+          const updatedSession = await this.sessionService.getOrCreateSession(sessionId);
+          const updatedUsers = Array.from(updatedSession.users.values());
+          this.server.to(sessionId).emit(MessageType.SYNC_RESPONSE, {
+            content: updatedSession.content,
+            language: updatedSession.language,
+            users: updatedUsers
+          });
         }
       } catch (error) {
         console.error('Error handling disconnect:', error);
@@ -148,17 +139,8 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: { username: string },
     callback?: (response: { user: User }) => void,
   ) {
-    console.log('Join request received:', {
-      clientId: client.id,
-      username: payload.username,
-      sessionId: client.handshake.query.sessionId,
-      socketData: client.data,
-      timestamp: new Date().toISOString(),
-    });
-
     const sessionId = client.handshake.query.sessionId as string;
     if (!sessionId) {
-      console.error('No session ID in JOIN request');
       client.emit(MessageType.ERROR, { message: 'Session ID is required' });
       return;
     }
@@ -168,18 +150,15 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload,
     );
     if (validationError) {
-      console.error('Validation error in JOIN request:', validationError);
       client.emit(MessageType.ERROR, validationError);
       return;
     }
 
-    // Check rate limit
     const { limited, message } = this.rateLimiter.isRateLimited(
       client.id,
       MessageType.JOIN,
     );
     if (limited) {
-      console.error('Rate limit exceeded:', { clientId: client.id, message });
       client.emit(MessageType.ERROR, {
         type: 'RATE_LIMIT_EXCEEDED',
         message: message || 'Too many join attempts. Please try again later.',
@@ -188,31 +167,17 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     try {
-      // Add user to session
       const user = await this.sessionService.addUserToSession(sessionId, payload.username);
-      
-      // Store user ID in socket data
       client.data.userId = user.id;
-      console.log('Stored user ID in socket data:', client.data);
 
-      // Send JOIN response to the client
-      console.log('Sending JOIN response to client:', { user });
       client.emit(MessageType.JOIN, { user });
       if (typeof callback === 'function') {
         callback({ user });
       }
 
-      // Broadcast user joined to all clients in the session
-      console.log('Broadcasting USER_JOINED event to session:', sessionId);
       client.to(sessionId).emit(MessageType.USER_JOINED, { user });
 
-      // Send updated user list to all clients
       const session = await this.sessionService.getOrCreateSession(sessionId);
-      console.log('Sending SYNC_RESPONSE to all clients in session:', {
-        content: session.content,
-        language: session.language,
-        users: Array.from(session.users.values()),
-      });
       this.server.to(sessionId).emit(MessageType.SYNC_RESPONSE, {
         content: session.content,
         language: session.language,
@@ -400,17 +365,11 @@ export class EditorGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   @SubscribeMessage(MessageType.SYNC_REQUEST)
   async handleSyncRequest(@ConnectedSocket() client: Socket) {
-    console.log('Sync request received from client:', client.id);
-
     const sessionId = client.handshake.query.sessionId as string;
     if (!sessionId) return;
 
     try {
       const session = await this.sessionService.getOrCreateSession(sessionId);
-      console.log(
-        'Sending sync response with users:',
-        Array.from(session.users.values()),
-      );
       client.emit(MessageType.SYNC_RESPONSE, {
         content: session.content,
         language: session.language,

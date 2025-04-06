@@ -21,7 +21,6 @@ export const useWebSocket = (sessionId: string, username: string) => {
 
   const handleError = useCallback(
     (message: string) => {
-      console.error('Socket error:', message);
       setError(message);
     },
     [setError],
