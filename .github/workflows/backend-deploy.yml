@@ -41,8 +41,10 @@
           - name: Generate deployment package
             run: |
               cd packages/backend
+              # Make prebuild hook executable
+              chmod +x .platform/hooks/prebuild/01_install_pnpm.sh
               # Create deployment package
-              zip -r ../../deploy.zip dist Procfile .ebextensions .platform package.json pnpm-lock.yaml
+              zip -r ../../deploy.zip dist Procfile .ebextensions .platform package.json
               cd ../..
 
           - name: Configure AWS Credentials
