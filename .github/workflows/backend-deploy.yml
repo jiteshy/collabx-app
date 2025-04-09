@@ -41,7 +41,8 @@
           - name: Generate deployment package
             run: |
               cd packages/backend
-              zip -r ../../deploy.zip dist Procfile .ebextensions package.json pnpm-lock.yaml
+              # Create deployment package
+              zip -r ../../deploy.zip dist Procfile .ebextensions .platform package.json pnpm-lock.yaml
               cd ../..
 
           - name: Configure AWS Credentials
