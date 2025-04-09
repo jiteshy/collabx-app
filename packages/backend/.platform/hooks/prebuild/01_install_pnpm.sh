@@ -1,8 +1,12 @@
 #!/bin/bash
-# Update npm first
-npm install -g npm@latest
-# Install pnpm using npm
-npm install -g pnpm@latest --no-fund --no-audit
+set -e
+
+# Remove existing pnpm installation if it exists
+npm rm -g pnpm || true
+
+# Install pnpm with force flag and no extra output
+npm install -g pnpm@latest --no-fund --no-audit --force
+
 # Verify installation
 pnpm --version || exit 1
 
