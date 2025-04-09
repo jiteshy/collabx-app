@@ -5,7 +5,7 @@ set -e
 npm rm -g pnpm || true
 
 # Install pnpm with force flag and no extra output
-npm install -g pnpm@latest --no-fund --no-audit --force
+npm install -g pnpm@latest --no-fund --no-audit
 
 # Verify installation
 pnpm --version || exit 1
