@@ -41,6 +41,9 @@
           - name: Generate deployment package
             run: |
               cd packages/backend
+              # Create empty node_modules directory to prevent EB from running npm install
+              mkdir -p node_modules
+              touch node_modules/.gitkeep
               # Create a zip file containing only the necessary deployment artifacts
               zip -r ../../deploy.zip dist Procfile .ebextensions package.json pnpm-lock.yaml # Include lockfile if EB needs to reinstall potentially
               # Optional: Add node_modules if you want to skip install on EB, but increases zip size significantly
