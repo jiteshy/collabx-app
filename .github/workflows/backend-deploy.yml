@@ -42,7 +42,7 @@
             run: |
               cd packages/backend
               # Install only production dependencies
-              pnpm install --prod
+              pnpm install
               # Create deployment package with node_modules
               zip -r ../../deploy.zip dist Procfile .ebextensions package.json node_modules
               cd ../..
