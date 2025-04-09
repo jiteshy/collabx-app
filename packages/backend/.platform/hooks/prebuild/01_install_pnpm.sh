@@ -11,4 +11,4 @@ npm install -g pnpm@latest --no-fund --no-audit --force
 pnpm --version || exit 1
 
 # Install dependencies
-pnpm install --frozen-lockfile
+pnpm install
