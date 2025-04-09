@@ -45,7 +45,7 @@
               mkdir -p node_modules
               touch node_modules/.gitkeep
               # Create a zip file containing only the necessary deployment artifacts
-              zip -r ../../deploy.zip dist Procfile .ebextensions package.json pnpm-lock.yaml node_modules
+              zip -r ../../deploy.zip dist Procfile .ebextensions # package.json pnpm-lock.yaml node_modules
               # Optional: Add node_modules if you want to skip install on EB, but increases zip size significantly
               # zip -r -u ../../deploy.zip node_modules
               cd ../..
