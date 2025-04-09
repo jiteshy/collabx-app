@@ -41,8 +41,6 @@
           - name: Generate deployment package
             run: |
               cd packages/backend
-              # Install dependencies first
-              pnpm install
               # Create a zip file containing all necessary files including node_modules
               zip -r ../../deploy.zip dist Procfile .ebextensions
               cd ../..
