@@ -41,8 +41,10 @@
           - name: Generate deployment package
             run: |
               cd packages/backend
-              # Create a zip file containing all necessary files including node_modules
-              zip -r ../../deploy.zip dist Procfile .ebextensions
+              # Install only production dependencies
+              pnpm install --prod
+              # Create deployment package with node_modules
+              zip -r ../../deploy.zip dist Procfile .ebextensions package.json node_modules
               cd ../..
 
           - name: Configure AWS Credentials
