@@ -1,14 +1,18 @@
 #!/bin/bash
 set -e
 
+echo "Starting pnpm installation..."
+
 # Remove existing pnpm installation if it exists
+echo "Removing existing pnpm..."
 npm rm -g pnpm || true
 
-# Install pnpm with force flag and no extra output
-npm install -g pnpm@latest --no-fund --no-audit
+echo "Installing pnpm..."
+# Try installing pnpm with sudo
+sudo npm install -g pnpm@latest --no-fund --no-audit --force
 
+echo "Verifying pnpm installation..."
 # Verify installation
-pnpm --version || exit 1
+pnpm --version
 
-# Install dependencies
-pnpm install
+echo "pnpm installation complete"
