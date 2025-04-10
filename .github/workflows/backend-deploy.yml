@@ -36,15 +36,11 @@
             run: pnpm --filter @collabx/shared build
 
           - name: Build backend package
-            run: pnpm --filter @collabx/backend build
+            run: pnpm --filter @collabx/backend build:ncc
 
           - name: Generate deployment package
             run: |
-              pnpm --filter @collabx/shared build
-              pnpm --filter @collabx/backend build
               cd packages/backend
-              # Create Procfile
-              echo "web: node dist/main.js" > Procfile
               # Create deployment package
               zip -r ../../deploy.zip dist Procfile .ebextensions
               cd ../..
