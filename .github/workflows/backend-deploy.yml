@@ -46,7 +46,7 @@
               # Build the application
               pnpm build
               # Create Procfile
-              echo "web: npm start:prod" > Procfile
+              echo "web: node dist/main.js" > Procfile
               # Create deployment package with all necessary files
               zip -r ../../deploy.zip dist Procfile .ebextensions package.json node_modules
               cd ../..
