@@ -46,7 +46,7 @@
               # Create Procfile
               echo "web: node dist/main.js" > Procfile
               # Create deployment package
-              zip -r ../../deploy.zip dist Procfile .ebextensions ../../node_modules
+              zip -r ../../deploy.zip dist Procfile .ebextensions
               cd ../..
 
           - name: Configure AWS Credentials
