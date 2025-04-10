@@ -41,10 +41,12 @@
           - name: Generate deployment package
             run: |
               cd packages/backend
-              # Install and build dependencies before zipping
+              # Install dependencies
               pnpm install
+              # Create Procfile to use node directly
+              echo "web: node dist/main.js" > Procfile
               # Create deployment package with node_modules
-              zip -r ../../deploy.zip dist Procfile .ebextensions .platform package.json node_modules
+              zip -r ../../deploy.zip dist Procfile .ebextensions package.json node_modules
               cd ../..
 
           - name: Configure AWS Credentials
