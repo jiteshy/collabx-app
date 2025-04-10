@@ -41,13 +41,12 @@
           - name: Generate deployment package
             run: |
               cd packages/backend
-              # Install dependencies
-              pnpm install
-              # Build the application
-              pnpm build
+              # Install all dependencies including tslib
+              pnpm add tslib
+              pnpm install --prod
               # Create Procfile
               echo "web: node dist/main.js" > Procfile
-              # Create deployment package with all necessary files
+              # Create deployment package
               zip -r ../../deploy.zip dist Procfile .ebextensions package.json node_modules
               cd ../..
 
