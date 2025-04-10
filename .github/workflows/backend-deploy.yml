@@ -63,4 +63,4 @@
               region: ${{ secrets.AWS_REGION }}
               deployment_package: deploy.zip # The zip file created earlier
               # Use existing version if package hasn't changed (optional optimization)
-              # use_existing_version_if_available: true
+              use_existing_version_if_available: true
