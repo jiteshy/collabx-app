@@ -40,14 +40,13 @@
 
           - name: Generate deployment package
             run: |
+              pnpm --filter @collabx/shared build
+              pnpm --filter @collabx/backend build
               cd packages/backend
-              # Install all dependencies including tslib
-              pnpm add tslib
-              pnpm install --prod
               # Create Procfile
               echo "web: node dist/main.js" > Procfile
               # Create deployment package
-              zip -r ../../deploy.zip dist Procfile .ebextensions package.json node_modules
+              zip -r ../../deploy.zip dist Procfile .ebextensions ../../node_modules
               cd ../..
 
           - name: Configure AWS Credentials
